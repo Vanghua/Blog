@@ -1,0 +1,29 @@
+// 测试all方法
+let ar = [1, 2, 3, new Promise(res => {
+    setTimeout(() => {
+        res(4)
+    }, 3000)
+}), 5, new Promise(res => {
+    setTimeout(() => {
+        res(6)
+    })
+})]
+
+let ar2 = [1, 2, 3, new Promise(res => {
+    setTimeout(() => {
+        res(4)
+    }, 3000)
+}), 5, new Promise((res, rej) => {
+    setTimeout(() => {
+        rej(6)
+    })
+})]
+
+let ar3 = new Map([["name", "Danny"], ["age", 20], ["gender", "man"]])
+
+let ar4 = "Danny"
+
+Promise.all(ar).then(console.log) // [1, 2, 3, 4, 5, 6]
+Promise.all(ar2).then(console.log,console.log) // 6
+Promise.all(ar3).then(console.log) // [ [ 'name', 'Danny' ], [ 'age', 20 ], [ 'gender', 'man' ] ]
+Promise.all(ar4).then(console.log) // [ 'D', 'a', 'n', 'n', 'y' ]

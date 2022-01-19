@@ -1,0 +1,51 @@
+// 普通对象测试
+let obj = {
+    name: "Danny",
+    [Symbol("Danny")]: "man",
+    school: {
+        name: "SDU"
+    },
+    nickName: "Vanghua",
+    get nickNameFunc() {
+        console.log("get方法被调用")
+        return this.nickName
+    },
+    set nickNameFunc(val) {
+        this.nickName = val
+    }
+}
+let test = copy(obj)
+console.log(test)
+// get方法被调用
+// {
+//   name: 'Danny',
+//   school: { name: 'SDU' },
+//   nickName: 'Vanghua',
+//   nickNameFunc: 'Vanghua',
+//   [Symbol(Danny)]: 'man'
+// }
+obj.school.name = "PKU"
+console.log(test)
+// {
+//   name: 'Danny',
+//   school: { name: 'PKU' },
+//   nickName: 'Vanghua',
+//   nickNameFunc: 'Vanghua',
+//   [Symbol(Danny)]: 'man'
+// }
+
+// 数组测试
+// 数组不存在访问器属性和不可枚举属性(可以有，但是没有必要)，情况要简单一些
+let ar = [1, 2, Symbol("Danny"), { name: "SDU" }, function test() { console.log(1) }]
+let test1 = copy(ar)
+console.log(test1) // [ 1, 2, Symbol(Danny), { name: 'SDU' }, [Function: test] ]
+ar[3].name = "PKU"
+console.log(test1) // [ 1, 2, Symbol(Danny), { name: 'PKU' }, [Function: test] ]
+
+// 函数测试
+const t = function() {
+    console.log(1)
+}
+let test2 = copy(t);
+test2(); // 1
+t(); // 1

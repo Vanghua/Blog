@@ -1,0 +1,73 @@
+let teacher = {}
+let stu = {
+    teacher: teacher,
+    name: "Danny",
+    [Symbol("Danny")]: 20,
+    getName: function() {
+        return this.name
+    },
+    getSchoolName() {
+        return this.school.name
+    },
+    test: res => res,
+    fib(n) {
+        if(n < 2)
+            return n
+        return this.fib(n - 1) + this.fib(n - 2)
+    },
+    school: {
+        name: "SDU",
+        [Symbol("Danny")]: 120,
+        major: {
+            name: "computer",
+            population: 108,
+            room: {
+                name: "409"
+            }
+        }
+    }
+}
+// 制造循环引用
+teacher.student = stu
+let test = deepClone(stu)
+stu.school.name = "PKU", stu.school.major.name = "physics", stu.school.major.room.name = "410"
+console.log(test)
+console.log(test.getName())
+console.log(test.test("hello"))
+console.log(test.fib(5))
+// {
+//   teacher: <ref *1> {
+//     student: {
+//       teacher: [Circular *1],
+//       name: 'Danny',
+//       getName: [Function: getName],
+//       getSchoolName: [Function: getSchoolName],
+//       test: [Function: test],
+//       fib: [Function: fib],
+//       school: [Object],
+//       [Symbol(Danny)]: 20
+//     }
+//   },
+//   name: 'Danny',
+//   getName: [Function: getName],
+//   getSchoolName: [Function: getSchoolName],
+//   test: [Function: test],
+//   fib: [Function: fib],
+//   school: {
+//     name: 'PKU',
+//     major: { name: 'physics', population: 108, room: [Object] },
+//     [Symbol(Danny)]: 120
+//   },
+//   [Symbol(Danny)]: 20
+// }
+// Danny
+// hello
+// 5
+
+
+// 数组测试
+let ar = [{name: "SDU"}]
+let arCopy = deepClone(ar)
+ar[0].name = "PKU"
+console.log(arCopy)
+// [ { name: 'SDU' } ]

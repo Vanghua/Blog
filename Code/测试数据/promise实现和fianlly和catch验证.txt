@@ -1,0 +1,27 @@
+// 测试解决值是期约的链式情景，基本实现，finally，catch
+let p = new Promise((res, rej) => {
+    setTimeout(() => {
+        rej(new Promise(res => {
+            res(new Promise((res, rej) => {
+                rej(new Promise(res => {
+                    res("Vanghua")
+                }))
+            }))
+        }))
+    }, 1000)
+}).then(res => {
+    console.log("期约兑现", res)
+}, err => {
+    console.log("期约拒绝", err) // 1秒后输出Vanghua
+    return err
+}).finally(() => {
+    console.log("正在执行finally") // 正常输出
+}).then(res => {
+    console.log("期约兑现", res)
+}, err => {
+    console.log("期约拒绝", err) // Vanghua
+    return err
+}).catch(err => {
+    console.log("期约拒绝", err) // Vanghua
+    return err
+})

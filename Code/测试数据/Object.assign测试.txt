@@ -1,0 +1,72 @@
+// 普通对象测试1：目标对象和源对象有同名访问器属性
+let source = {
+    gender: "man",
+    [Symbol("Danny")]: 20,
+    get genderFunc() {
+        console.log("调用了源对象的get")
+        return this.gender
+    },
+    set genderFunc(val) {
+        this.gender = val
+    }
+}
+
+let target = {
+    gender: "woman",
+    get genderFunc() {
+        return this.gender
+    },
+    set genderFunc(val) {
+        console.log("调用了目标对象的set")
+        this.gender = val
+    }
+}
+target = Object.$assign(target, source)
+console.log(target)
+// 调用了源对象的get
+// 调用了目标对象的set
+// { gender: 'man', genderFunc: [Getter/Setter], [Symbol(Danny)]: 20 }
+
+// 普通对象测试2：目标对象和源对象有同名属性，目标对象是访问器属性，源对象是普通属性
+let source2 = {
+    gender: "man",
+    [Symbol("Danny")]: 20,
+    genderFunc: "man man"
+}
+
+let target2 = {
+    gender: "woman",
+    get genderFunc() {
+        return this.gender
+    },
+    set genderFunc(val) {
+        console.log("调用了目标对象的set")
+        this.gender = val
+    }
+}
+target2 = Object.$assign(target2, source2)
+console.log(target2)
+// 调用了目标对象的set
+// { gender: 'man man', genderFunc: [Getter/Setter], [Symbol(Danny)]: 20 }
+
+// 普通对象测试3：目标对象和源对象有同名属性，目标对象是普通属性，源对象是访问器属性
+let source3 = {
+    gender: "man",
+    [Symbol("Danny")]: 20,
+    get genderFunc() {
+        console.log("调用源对象的get")
+        return this.gender
+    },
+    set genderFunc(val) {
+        this.gender = val
+    }
+}
+
+let target3 = {
+    gender: "woman",
+    genderFunc: "Danny"
+}
+target3 = Object.$assign(target3, source3)
+console.log(target3)
+// 调用源对象的get
+// { gender: 'man', genderFunc: 'man', [Symbol(Danny)]: 20 }

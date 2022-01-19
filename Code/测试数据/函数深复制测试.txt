@@ -1,0 +1,15 @@
+let obj = {
+    getName() {
+        return "Danny"
+    },
+    getAge: () => 20,
+    fib(n) {
+        if(n < 2)
+            return n
+        return this.fib(n - 1) + this.fib(n - 2)
+    }
+}
+
+console.log(copyFunction(obj.getName)()) // Danny
+console.log(copyFunction(obj.getAge)()) // 20
+console.log(copyFunction(obj.fib)(5)) // 5

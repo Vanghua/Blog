@@ -1,0 +1,32 @@
+function Test(name) {
+    this.name = name
+}
+Test.prototype = {
+    constructor: Test,
+    getName() {
+        return this.name
+    }
+}
+
+function Test2(name) {
+    let obj = new Object()
+    Object.prototype.getName = function() {
+        return this.name
+    }
+    obj.name = name
+    return obj
+}
+
+let test = imitateNew(Test, "Danny")
+console.log(test)
+console.log(test.getName)
+
+let test2 = imitateNew(Test2, "Vanghua")
+console.log(test2)
+console.log(test2.getName)
+
+// 下面是输出情况
+// Test { name: 'Danny' }
+// [Function: getName]
+// { name: 'Vanghua' }
+// [Function (anonymous)]

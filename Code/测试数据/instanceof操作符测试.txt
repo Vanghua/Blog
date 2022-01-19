@@ -1,0 +1,12 @@
+console.log(imitateInstanceof(Object, Object)) // true
+console.log(imitateInstanceof(Function, Function)) // true
+console.log(imitateInstanceof(Number, Number)) // false
+console.log(imitateInstanceof(String, String)) // false
+console.log(imitateInstanceof(Function, Object)) // true
+function Foo() {}
+console.log(imitateInstanceof(Foo, Function)) // true
+console.log(imitateInstanceof(Foo, Foo)) // false
+console.log(imitateInstanceof(Number(1), Number)) // false
+console.log(imitateInstanceof("string", String)) // false
+console.log(imitateInstanceof(new Number(1), Number)) // true
+console.log(imitateInstanceof(new String("string"), String)) // true
