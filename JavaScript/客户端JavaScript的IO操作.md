@@ -339,8 +339,8 @@ require("http").createServer((req, res) => {
 }).listen(3000)
 ```
 如果下载速度过快，可以在调试台中设置一下下载速度限制，以便于更清晰显示进度条进度。如下是在谷歌浏览器中设置，设置下载速度为2MB每秒，图中单位是bit/s。
-![](./assests/network.png)
-![](./assests/network2.png)
+![](./assests/network.PNG)
+![](./assests/network2.PNG)
 
 ### 4.3 XHR实现网络IO下载进度条
 通过监听xhr.onprogress事件来获取下载进度   
