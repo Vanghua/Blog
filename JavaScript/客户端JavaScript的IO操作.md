@@ -307,7 +307,7 @@ fd.onprogress = function(event) {
             a.download = "视频.mp4"
             document.body.prepend(a)
             a.click()
-            // 回收URL内存并移除a标签
+            // 回收URL内存并移除a标签，相当于减少一个对该文件的引用
             URL.revokeObjectURL(a.href)
             document.body.firstElementChild.remove()
         })
