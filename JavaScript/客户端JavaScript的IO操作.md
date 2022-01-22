@@ -611,7 +611,7 @@ require("http").createServer((req, res) => {
         let xhr = new XMLHttpRequest()
         xhr.open("post", "/Vanghua")
         
-        // 监听进度
+        // 监听进度，注意这个事件的监听需要在xhr.send之前
         xhr.upload.onprogress = function(event) {
             progress.max = event.total
             progress.value = event.loaded
