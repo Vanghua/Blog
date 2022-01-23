@@ -349,7 +349,7 @@ async function deleteSlice(name) {
 ### 2.3 完整代码
 ### 网页代码
 ```html
-<input style="display: none;" id="input" type="file" onchange="handleChanged()"/>
+<input style="display: none;" id="input" type="file" accept="video/mp4" onchange="handleChanged()"/>
     <button onclick="handleSelect()">选择文件</button>
     <button onclick="handleUpload()">上传</button>
     <p>上传进度</p>
@@ -573,3 +573,5 @@ async function deleteSlice(name) {
     await fs.rmdir(path)
 }
 ```
+
+# 3.断点上传
