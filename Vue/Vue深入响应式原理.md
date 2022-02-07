@@ -20,7 +20,7 @@
 
 (1) 嵌套对象添加响应式 property需要调用Vue特殊方法
 
-使用```Vue.$set(anyObject, property, value)```
+使用```Vue.$set(anyObject, property, value)```或```Vue.$delete```
 
 ```javascript
 let school = {
@@ -131,9 +131,9 @@ class EventEmitter{
     }
 
     // 发布函数
-    emit(eventType, content) {
+    emit(eventType, ...content) {
         // 发布时，先找到该类型事件，然后执行每个订阅者的通知函数，把信息通知给这些订阅者
-        this.eventList[eventType] && this.eventList[eventType].forEach(notifyFunc => notifyFunc.call(this, content))
+        this.eventList[eventType] && this.eventList[eventType].forEach(notifyFunc => notifyFunc.call(this, ...content))
     }
 
     // 只订阅一次
@@ -244,8 +244,8 @@ eventEmitter.off("玩电脑", console.log)
 
 ```javascript
 // 假设window.target是如下的通知函数
-globalThis.target = function(content) {
-    console.log(content)
+globalThis.target = function(key, val, newVal) {
+    console.log(key + "属性发生了改变，由" + val + "变为了" + newVal)
     // 下面的代码省略，是通知Vue模板中使用该变量的位置，该变量值发生了改变，需要更新
 }
 
@@ -269,7 +269,7 @@ function defineReactive(data, key, val) {
             if(val === newVal)
                 return
             // 当属性值发生改变时，先更新属性值，然后发布更新信息
-            eventEmitter.emit("change", key + "属性发生了改变，由" + val + "变为了" + newVal)
+            eventEmitter.emit("change", key, val, newVal)
             val = newVal
         }
     })
@@ -336,5 +336,113 @@ data.school.name = "PKU"
 
 
 
+#### 2.3 Vue响应式原理实现vm.$watch
+
+**注意：**
+
+在Vue官网中关于vm.$watch的介绍比较简略，但是不影响理解它的含义。在<<深入浅出Vue.js>>中主要在第四章介绍vm.$watch，但是第二章也有所涉及。
 
 
+
+**1.回顾：**
+
+在2.2中实现了基础的Vue响应式原理，主要是考虑了两个方面：1.如何追踪对象的变化——使用访问器属性 2.如何将对象的变化通知给模板——使用订阅发布模式。
+
+
+
+**2.vm.$watch：**
+
+但是在实际的Vue响应式实现中考虑了更灵活的应用场景，用户应也可以监听对象的变化。Vue提供了更高封装程度的vm.$watch代替访问器属性，让用户更容易监听对象变化。使用```vm.$watch(property, callback)```的效果是，当指定的Vue实例的data中的property发生变化后，会执行callback函数。
+
+
+
+**3.vm.$watch的实现：**
+
+下述代码实现了Watcher类，效果和vm.$watch大致相同，使用方法不同。但效果都是能够让用户监听到对象的变化。将下述代码和2.2中实现的代码结合即可。
+
+```javascript
+class Watcher {
+    // expOrFn为属性表达式，详情参见Vue官网关于vm.$watch的使用，expOrFn对应其第一个参数。在这里的实现中vm指的是Vue实例的data对象。
+    constructor(vm, expOrFn, callback) {
+        this.vm = vm
+        this.expOrFn = expOrFn
+        this.callback = callback
+        this.value = this.get()
+    }
+
+    get() {
+        globalThis.target = (key, val, newVal) => {
+            this.callback.call(this.vm, val, newVal)
+            this.value = this.get()
+        }
+
+        // 访问data.expOrFn对应的属性，此时会触发访问器属性get，get中会加入globalThis.target，此时的globalThis.target已经修改成了用户希望的回调函数
+        let value = Watcher.parsePath(this.expOrFn).call(this, this.vm)
+
+        // 将globalThis.target还原，上文globalThis的值就如下
+        globalThis.target = function(key, val, newVal) {
+            console.log(key + "属性发生了改变，由" + val + "变为了" + newVal)
+            // 下面的代码省略，是通知Vue模板中使用该变量的位置，该变量值发生了改变，需要更新
+        }
+        return value
+    }
+
+    // 解析传入的属性expOrFn，比如"a.b.c"，结果是obj.a.b.c
+    static parsePath(expOrFn) {
+        let segments = expOrFn.split(".")
+        return function(obj) {
+            for(let i = 0; i < segments.length; i ++)
+                if(!obj)
+                    return
+                else
+                    obj = obj[segments[i]]
+            return obj
+        }
+    }
+}
+```
+
+**4.代码测试：**
+
+在将上述代码和2.1,2.2的代码结合后做下述测试
+
+```javascript
+// 测试响应式原理中的vm.$watch
+// 下面的data对象模拟Vue中的data
+let data = {
+    name: "Danny",
+    gender: "male",
+    school: {
+        name: "SDU",
+        grade: [1, 2, 3],
+        location: {
+            province: "Shandong",
+            city: "WeiHai"
+        }
+    }
+}
+
+// 将data对象的属性全部变为访问器属性
+makeResponsive(data)
+
+// 使用Watcher对象使得用户可以监听到对象的变化
+new Watcher(data, "school.name", function(val, newVal) {
+    console.log("使用watcher监听到了对象的变化","老属性值是" + val, "新属性值是" + newVal)
+})
+
+// 对象发生变化
+data.school.name = "PKU"
+
+// 预计输出结果
+// 使用watcher监听到了对象的变化 老属性值是SDU 新属性值是PKU
+```
+
+
+
+### 3.Vue响应式是异步更新DOM
+
+在Vue官网中介绍<<深入响应式原理>>时提到Vue的DOM更新是异步的，如果想在DOM更新后执行某些回电函数，那么需要使用Vue.$nextTick()。
+
+
+
+这里有些困惑，在本人另一篇博客“浏览器事件”中提到了浏览器更新DOM的时机。根据WhatWG官方文档介绍，浏览器先执行task(就是通常讲的宏任务，只不过第一个task是JavaScript同步代码)，之后执行microtask，再之后才进行DOM更新。因此我猜想Vue.$nextTick()的实现会用到宏任务，这样会在DOM更新后执行回调。但是在查阅了源码（在node_modules/vue/src/core中）后发现实现中可以使用微任务也可以使用宏任务。在参考了https://segmentfault.com/q/1010000039973370后，本人推测应该与Vue的虚拟DOM有关。此问题将在完成虚拟DOM学习后再详细考虑。
