@@ -407,7 +407,7 @@ class Watcher {
 在将上述代码和2.1,2.2的代码结合后做下述测试
 
 ```javascript
-// 测试响应式原理中的vm.$watch
+![responsive](assests/responsive.PNG)// 测试响应式原理中的vm.$watch
 // 下面的data对象模拟Vue中的data
 let data = {
     name: "Danny",
@@ -446,3 +446,11 @@ data.school.name = "PKU"
 
 
 这里有些困惑，在本人另一篇博客“浏览器事件”中提到了浏览器更新DOM的时机。根据WhatWG官方文档介绍，浏览器先执行task(就是通常讲的宏任务，只不过第一个task是JavaScript同步代码)，之后执行microtask，再之后才进行DOM更新。因此我猜想Vue.$nextTick()的实现会用到宏任务，这样会在DOM更新后执行回调。但是在查阅了源码（在node_modules/vue/src/core中）后发现实现中可以使用微任务也可以使用宏任务。在参考了https://segmentfault.com/q/1010000039973370后，本人推测应该与Vue的虚拟DOM有关。此问题将在完成虚拟DOM学习后再详细考虑。
+
+
+
+### 4.总结
+
+总结借用Vue官网关于响应式介绍的图。Watcher就是上面实现的Watcher类，或者说就是vm.$watch()对应上述的2.3。Data的访问器方法实现对象变化侦测对应上文的1。虚线具体的步骤都在代码实现中体现出来。关于虚拟DOM可以暂时忽视。
+
+![](assests/responsive.PNG)
