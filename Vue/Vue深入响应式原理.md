@@ -216,7 +216,7 @@ eventEmitter.off("玩电脑", console.log)
 
 
 
-#### 2.2 基于订阅发布模式实现Vue的响应式原理
+#### 2.2 基于订阅发布模式实现Vue的响应式原理---对象
 
 **注意：**
 
@@ -226,13 +226,13 @@ eventEmitter.off("玩电脑", console.log)
 
 **1.下述代码想要模拟的场景是：**
 
-创建一个新的Vue实例，Vue在底层将Vue实例中的data的属性全部设置为访问器属性，检测数据变化。声明一个变量，赋值为data中的某个属性，模拟Vue模板中使用数据绑定。最后改变data中的属性值，观察结果。
+创建一个新的Vue实例，Vue在底层将Vue实例中的data的属性全部设置为访问器属性，检测数据变化。声明一个变量，赋值为data中的某个属性，模拟Vue模板中使用数据绑定。最后改变data中的属性值，观察结果。**下述代码不考虑data中含有数组的情况**
 
 
 
-**2.下述代码在何处使用订阅发布模式：(实现思路)**
+**2.下述代码实现思路：**
 
-在将Vue实例中的data的属性设为访问器属性时使用订阅发布模式。访问器get方法中进行订阅，传入一个通知函数，该通知函数能够通知Vue模板中所有绑定该变量的位置，该变量值发生变化。访问器set方法中进行发布，当属性值变化时，发布事件，触发通知函数，通知模板中绑定该变量的位置要更新变量值。
+在将Vue实例中的data的属性设为访问器属性时使用订阅发布模式。访问器get方法中进行订阅，传入一个通知函数，该通知函数能够通知Vue模板中所有绑定该变量的位置，该变量值发生变化。访问器set方法中进行发布，当属性值变化时，发布事件，触发通知函数，通知模板中绑定该变量的位置要更新变量值。**也可参考最后面的总结**
 
 
 
@@ -249,52 +249,52 @@ globalThis.target = function(key, val, newVal) {
     // 下面的代码省略，是通知Vue模板中使用该变量的位置，该变量值发生了改变，需要更新
 }
 
-// 将某个属性设置为访问器属性，以做到对属性变化的检测
-function defineReactive(data, key, val) {
-    // 不为所有情况创建一个全局的EventEmitter对象的原因是：eventType的表示不方便，两个对象有同名属性时需要考虑对对象进行哈希运算，否则会出现两个对象使用同一个eventType。
-    // 这里牺牲空间复杂度降低时间复杂度。
-    const eventEmitter = new EventEmitter()
-    Object.defineProperty(data, key, {
-        enumerable: true,
-        configurable: true,
-        // 注意这里不要使用get()增强型写法，Vue2.x的Object.defineProperty方法在设计时不是在ES6环境，否则直接使用proxy对象完成对象探测
-        get: function() {
-            // 这里假设一个不存在的window.target属性为通知函数，真正的Vue的通知函数要复杂，这里使用window.target代指之。
-            if(globalThis.target)
-                // 这里的eventType随便命名即可，订阅时传入通知函数
-                eventEmitter.on("change", globalThis.target)
-            return val
-        },
-        set: function(newVal) {
-            if(val === newVal)
-                return
-            // 当属性值发生改变时，先更新属性值，然后发布更新信息
-            eventEmitter.emit("change", key, val, newVal)
-            val = newVal
-        }
-    })
-}
+// Observer是观察类，负责将对象变为响应式
+class Observer {
+    constructor(value) {
+        // 数组需要另外考虑
+        if (!(value instanceof Array))
+            this.walk(value)
+    }
 
-// 传入一个对象，使它每个属性变成访问器属性
-function makeResponsive(data) {
-    // 简便期间，这里不对data做额外的类型检查，只是检查data是数组还是非数组非函数的普通对象
-    if(data instanceof Array) {
-        // data是数组，遍历data的每一个属性
-        data.forEach(property => {
-            // 如果该属性值是非函数的引用类型，那么需要递归使它每个属性变成响应式
-            if(data[property] && (typeof data[property] !== "function" && data[property] instanceof Object)) {
-                defineReactive(data, property, data[property])
-                makeResponsive(data[property])
-                // 注意defineReactive(data, property, data[property])，不能统一写在if之前，因为if中的data[property]相当于调用了get方法，这不是我们希望的
-            } else defineReactive(data, property, data[property])
+    // 将某个属性设置为访问器属性，以做到对属性变化的检测
+    defineReactive(data, key, val) {
+        // 不为所有情况创建一个全局的EventEmitter对象的原因是：eventType的表示不方便，两个对象有同名属性时需要考虑对对象进行哈希运算，否则会出现两个对象使用同一个eventType。
+        // 这里牺牲空间复杂度降低时间复杂度。
+        const eventEmitter = new EventEmitter()
+        Object.defineProperty(data, key, {
+            enumerable: true,
+            configurable: true,
+            // 注意这里不要使用get()增强型写法，Vue2.x的Object.defineProperty方法在设计时不是在ES6环境，否则直接使用proxy对象完成对象探测
+            get: function() {
+                // 这里假设一个不存在的window.target属性为通知函数，真正的Vue的通知函数要复杂，这里使用window.target代指之。
+                if(globalThis.target)
+                    // 这里的eventType随便命名即可，订阅时传入通知函数
+                    eventEmitter.on("change", globalThis.target)
+                return val
+            },
+            set: function(newVal) {
+                if(val === newVal)
+                    return
+                // 当属性值发生改变时，先更新属性值，然后发布更新信息
+                eventEmitter.emit("change", key, val, newVal)
+                val = newVal
+            }
         })
-    } else Object.keys(data).forEach(property => {
-        // data是对象的情况同上
-        if(data[property] && (typeof data[property] !== "function" && data[property] instanceof Object)) {
-            defineReactive(data, property, data[property])
-            makeResponsive(data[property])
-        } else defineReactive(data, property, data[property])
-    })
+    }
+
+    // 将传入对象的所有属性设置为访问器属性
+    walk(value) {
+        // 这里不考虑符号属性，keys只能获取自有可枚举非符号属性
+        const keys = Object.keys(value)
+        for(let key of keys) {
+            // 先不考虑数组的情况
+            if(typeof value[key] === "object" && !(value[key] instanceof Array)) {
+                this.defineReactive(value, key, value[key])
+                this.walk(value[key])
+            } else this.defineReactive(value, key, value[key])
+        }
+    }
 }
 ```
 
@@ -316,8 +316,7 @@ let data = {
     }
 }
 
-// 将data对象的属性全部变为访问器属性
-makeResponsive(data)
+let observer = new Observer(data)
 
 // 模拟Vue模板中使用data中的数据
 let gender = data.gender
@@ -336,7 +335,121 @@ data.school.name = "PKU"
 
 
 
-#### 2.3 Vue响应式原理实现vm.$watch
+#### 2.3 基于订阅发布模式实现Vue的响应式原理---数组
+
+**1.下述代码想要模拟的场景是：**
+
+2.3像模拟的情况和2.2相同，只不过是考虑data中有数组的情况，数组的响应式处理和对象不同。
+
+**2.下述代码的思路：**
+
+在Vue2.x中对数组响应式处理有几条要求（与处理对象不同，也受制于非ES6环境）。1.数组本身的修改是响应式的，即栈内存的改变；2.数组元素中的非引用类型不是响应式的；3.修改数组的方法是响应式的（push，pop，unshift，shift，splice，sort，reverse）。第一个和第二个要求容易实现，实现思路和处理对象一样。第三个要求实现思路是延长数组的原型链，创建一个继承自Array的对象，拥有上述7种方法，并在其中收集“依赖”，即订阅消息。之后改变数组的原型指针，指向这个新创建的对象。
+
+```javascript
+class Observer {
+    constructor(value) {
+        this.value = value
+        this.eventEmitter = new EventEmitter()
+        // 如果传入一个数组，那么更改其原型为数组方法对象，起到拦截效果
+        if(value instanceof Array)
+            this.observeArray(value)
+        else
+            // 如果不是数组，那么就正常将其变为响应式
+            this.walk(value)
+        // 为要变为响应式的对象添加一个属性“__ob__”，让其能够访问到访问器。目的是让数组拦截器能够访问到observer对象，实现通知
+        value["__ob__"] = this
+    }
+
+    // 将某个属性设置为访问器属性，以做到对属性变化的检测
+    defineReactive(data, key, val) {
+        // 不为所有情况创建一个全局的EventEmitter对象的原因是：eventType的表示不方便，两个对象有同名属性时需要考虑对对象进行哈希运算，否则会出现两个对象使用同一个eventType。
+        // 这里牺牲空间复杂度降低时间复杂度。
+        const eventEmitter = new EventEmitter()
+        Object.defineProperty(data, key, {
+            enumerable: true,
+            configurable: true,
+            // 注意这里不要使用get()增强型写法，Vue2.x的Object.defineProperty方法在设计时不是在ES6环境，否则直接使用proxy对象完成对象探测
+            get: function() {
+                // 这里假设一个不存在的window.target属性为通知函数，真正的Vue的通知函数要复杂，这里使用window.target代指之。
+                if(globalThis.target)
+                    // 这里的eventType随便命名即可，订阅时传入通知函数
+                    eventEmitter.on("change", globalThis.target)
+                return val
+            },
+            set: function(newVal) {
+                if(val === newVal)
+                    return
+                // 当属性值发生改变时，先更新属性值，然后发布更新信息
+                eventEmitter.emit("change", key, val, newVal)
+                val = newVal
+            }
+        })
+    }
+
+    // 当前处理元素为对象，递归将其属性设置为访问器属性
+    walk(value) {
+        // 这里不考虑符号属性，keys只能获取自有可枚举非符号属性
+        const keys = Object.keys(value)
+        for(let key of keys) {
+            let val = value[key]
+            // 先不考虑数组的情况
+            if(typeof val === "object" && !(val instanceof Array)) {
+                this.defineReactive(value, key, val)
+                this.walk(val)
+            } else if(val instanceof Array) {
+                this.defineReactive(value, key, val)
+                new Observer(val)
+            } else this.defineReactive(value, key, val)
+        }
+    }
+
+    // 当前处理元素为数组
+    observeArray(value) {
+        // 只是理解原理，这里就不做特判是否存在__proto__属性了，Vue.js源码中有相关处理
+        value.__proto__ = arrayMethods
+        // 数组本身订阅一个更改事件，当数组调用能修改自身的7种方法时会接受到通知
+        this.eventEmitter.on("change", globalThis.target)
+    }
+}
+}
+```
+
+**3.测试上述代码：**
+
+```javascript
+// 测试响应式原理
+// 下面的data对象模拟Vue中的data
+let data = {
+    name: "Danny",
+    gender: "male",
+    school: {
+        name: "SDU",
+        grade: [1, 2, 3],
+        location: {
+            province: "Shandong",
+            city: "WeiHai"
+        }
+    }
+}
+
+let observer = new Observer(data)
+// let模拟Vue模板中使用数据
+// let grade相当于Vue模板中引用了grade，例如v-for指令，此语句模拟Html中的数据绑定
+let grade = data.school.grade
+// 此语句模拟在js中修改data中grade的值，预期修改后会通知模板中所有绑定该变量的位置
+grade.push(22)
+
+// 此语句模拟在js中修改data中grade的值，预期修改后会通知模板中所有绑定该变量的位置
+data.school.grade = []
+
+// 预期输出
+// [1,2,3]属性发生了改变，由[1,2,3]变为了[1,2,3,22]
+// grade属性发生了改变，由1,2,3,22变为了
+```
+
+
+
+#### 2.4 Vue响应式原理实现vm.$watch
 
 **注意：**
 
@@ -404,10 +517,9 @@ class Watcher {
 
 **4.代码测试：**
 
-在将上述代码和2.1,2.2的代码结合后做下述测试
+在将上述代码和2.1,2.2,2.3的代码结合后做下述测试
 
 ```javascript
-![responsive](assests/responsive.PNG)// 测试响应式原理中的vm.$watch
 // 下面的data对象模拟Vue中的data
 let data = {
     name: "Danny",
@@ -423,7 +535,7 @@ let data = {
 }
 
 // 将data对象的属性全部变为访问器属性
-makeResponsive(data)
+let observer = new Observer(data)
 
 // 使用Watcher对象使得用户可以监听到对象的变化
 new Watcher(data, "school.name", function(val, newVal) {
@@ -439,7 +551,194 @@ data.school.name = "PKU"
 
 
 
-### 3.Vue响应式是异步更新DOM
+### 3.实现响应式的完整代码
+
+注：这是参考了Vue源码的思路，去掉一些复杂情况的特判，在某些地方加入了自己的理解的实现
+
+```javascript
+class EventEmitter{
+    constructor() {
+        // 事件类型对象，存储各种不同事件的通知函数队列
+        this.eventList = {}
+    }
+
+    // 订阅函数
+    on(eventType, notifyFunc) {
+        // 如果存在该类型事件，那么直接在其订阅者队列中添加一个通知函数。否则先创建订阅者队列，之后再添加通知函数。
+        (this.eventList[eventType] || (this.eventList[eventType] = [])).push(notifyFunc)
+    }
+
+    // 发布函数
+    emit(eventType, ...content) {
+        // 发布时，先找到该类型事件，然后执行每个订阅者的通知函数，把信息通知给这些订阅者
+        this.eventList[eventType] && this.eventList[eventType].forEach(notifyFunc => notifyFunc.call(this, ...content))
+    }
+
+    // 只订阅一次
+    once(eventType, notifyFunc) {
+        let that = this
+        // 创建一个新函数on，包装订阅者的通知函数notifyFunc
+        function on(content) {
+            // 当通知订阅者时，执行订阅者传来的通知函数
+            notifyFunc.call(that, content)
+            // 把新函数on取消订阅
+            this.off(eventType, on)
+        }
+        // 把新函数on放入通知队列，代替  订阅者的通知函数notifyFunc
+        this.on(eventType, on)
+    }
+
+    // 取消订阅
+    off(eventType, notifyFunc) {
+        let notifyQueue = this.eventList[eventType]
+        // 取消订阅时，先判断是否存在这种事件，再判断该事件的通知队列中是否存在该通知函数
+        if(notifyQueue && notifyQueue.includes(notifyFunc))
+            // 存在这种函数时则删除通知队列中所有该通知函数
+            for(let i = 0; i < notifyQueue.length;)
+                if(notifyQueue[i] === notifyFunc)
+                    notifyQueue.splice(i, 1)
+                else i ++
+    }
+}
+
+// 假设window.target是如下的通知函数
+globalThis.target = function(key, val, newVal) {
+    console.log(key + "属性发生了改变，由" + val + "变为了" + newVal)
+    // 下面的代码省略，是通知Vue模板中使用该变量的位置，该变量值发生了改变，需要更新
+}
+
+// 创建数组方法对象，继承于数组类
+// 看似数组方法对象继承于数组类相似类，但实际上数组方法对象要用作原型，就像“寄生组合继承”中的优化机制一样
+const arrayMethods = Object.create(Array.prototype);
+
+// 给数组方法对象添加方法，这些方法会修改数组本身，我们需要拦截监听，实现响应式
+["push", "pop", "unshift", "shift", "sort", "reverse", "splice"].forEach(method => {
+    const originalMethod = Array.prototype[method]
+    Object.defineProperty(arrayMethods, method, {
+        enumerable: false,
+        writable: true,
+        configurable: true,
+        value: function (...args) {
+            // 保存数组该方法执行前的状态
+            let that = this.slice(0)
+            // 执行此方法
+            let res =originalMethod.call(this, ...args)
+            // 通知数组，数组自身发生改变
+            this.__ob__.eventEmitter.emit("change", `[${that.join(",")}]`, `[${that.join(",")}]`, `[${this.join(",")}]`)
+            return res
+        }
+    })
+})
+
+class Observer {
+    constructor(value) {
+        this.value = value
+        this.eventEmitter = new EventEmitter()
+        // 如果传入一个数组，那么更改其原型为数组方法对象，起到拦截效果
+        if(value instanceof Array)
+            this.observeArray(value)
+        else
+            // 如果不是数组，那么就正常将其变为响应式
+            this.walk(value)
+        // 为要变为响应式的对象添加一个属性“__ob__”，让其能够访问到访问器。目的是让数组拦截器能够访问到observer对象，实现通知
+        value["__ob__"] = this
+    }
+
+    // 将某个属性设置为访问器属性，以做到对属性变化的检测
+    defineReactive(data, key, val) {
+        // 不为所有情况创建一个全局的EventEmitter对象的原因是：eventType的表示不方便，两个对象有同名属性时需要考虑对对象进行哈希运算，否则会出现两个对象使用同一个eventType。
+        // 这里牺牲空间复杂度降低时间复杂度。
+        const eventEmitter = new EventEmitter()
+        Object.defineProperty(data, key, {
+            enumerable: true,
+            configurable: true,
+            // 注意这里不要使用get()增强型写法，Vue2.x的Object.defineProperty方法在设计时不是在ES6环境，否则直接使用proxy对象完成对象探测
+            get: function() {
+                // 这里假设一个不存在的window.target属性为通知函数，真正的Vue的通知函数要复杂，这里使用window.target代指之。
+                if(globalThis.target)
+                    // 这里的eventType随便命名即可，订阅时传入通知函数
+                    eventEmitter.on("change", globalThis.target)
+                return val
+            },
+            set: function(newVal) {
+                if(val === newVal)
+                    return
+                // 当属性值发生改变时，先更新属性值，然后发布更新信息
+                eventEmitter.emit("change", key, val, newVal)
+                val = newVal
+            }
+        })
+    }
+
+    // 当前处理元素为对象，递归将其属性设置为访问器属性
+    walk(value) {
+        // 这里不考虑符号属性，keys只能获取自有可枚举非符号属性
+        const keys = Object.keys(value)
+        for(let key of keys) {
+            let val = value[key]
+            // 先不考虑数组的情况
+            if(typeof val === "object" && !(val instanceof Array)) {
+                this.defineReactive(value, key, val)
+                this.walk(val)
+            } else if(val instanceof Array) {
+                this.defineReactive(value, key, val)
+                new Observer(val)
+            } else this.defineReactive(value, key, val)
+        }
+    }
+
+    // 当前处理元素为数组
+    observeArray(value) {
+        // 只是理解原理，这里就不做特判是否存在__proto__属性了，Vue.js源码中有相关处理
+        value.__proto__ = arrayMethods
+        // 数组本身订阅一个更改事件，当数组调用能修改自身的7种方法时会接受到通知
+        this.eventEmitter.on("change", globalThis.target)
+    }
+}
+class Watcher {
+    // expOrFn为属性表达式，详情参见Vue官网关于vm.$watch的使用，expOrFn对应其第一个参数。在这里的实现中vm指的是Vue实例的data对象。
+    constructor(vm, expOrFn, callback) {
+        this.vm = vm
+        this.expOrFn = expOrFn
+        this.callback = callback
+        this.value = this.get()
+    }
+
+    get() {
+        globalThis.target = (key, val, newVal) => {
+            this.callback.call(this.vm, val, newVal)
+            this.value = this.get()
+        }
+
+        // 访问data.expOrFn对应的属性，此时会触发访问器属性get，get中会加入globalThis.target，此时的globalThis.target已经修改成了用户希望的回调函数
+        let value = Watcher.parsePath(this.expOrFn).call(this, this.vm)
+
+        // 将globalThis.target还原，上文globalThis的值就如下
+        globalThis.target = function(key, val, newVal) {
+            console.log(key + "属性发生了改变，由" + val + "变为了" + newVal)
+            // 下面的代码省略，是通知Vue模板中使用该变量的位置，该变量值发生了改变，需要更新
+        }
+        return value
+    }
+
+    // 解析传入的属性expOrFn，比如"a.b.c"，结果是obj.a.b.c
+    static parsePath(expOrFn) {
+        let segments = expOrFn.split(".")
+        return function(obj) {
+            for(let i = 0; i < segments.length; i ++)
+                if(!obj)
+                    return
+                else
+                    obj = obj[segments[i]]
+            return obj
+        }
+    }
+}
+```
+
+
+
+### 4.Vue响应式是异步更新DOM
 
 在Vue官网中介绍<<深入响应式原理>>时提到Vue的DOM更新是异步的，如果想在DOM更新后执行某些回电函数，那么需要使用Vue.$nextTick()。
 
@@ -451,6 +750,47 @@ data.school.name = "PKU"
 
 ### 4.总结
 
+**1.官网总结：**
+
 总结借用Vue官网关于响应式介绍的图。Watcher就是上面实现的Watcher类，或者说就是vm.$watch()对应上述的2.3。Data的访问器方法实现对象变化侦测对应上文的1。虚线具体的步骤都在代码实现中体现出来。关于虚拟DOM可以暂时忽视。
 
 ![](assests/responsive.PNG)
+
+**2.用类图来梳理上述代码的逻辑**
+
+![](assests/reactiveLogic.PNG)
+
+
+
+**3.核心逻辑梳理：**
+
+* 对象变化为响应式：
+
+  1. 对象依赖的收集： 在访问器属性的get中
+
+  2. 对象变化的通知：在访问器属性的set中
+
+     
+
+* 数组变化为响应式：
+
+  1. 数组依赖的收集：在访问器属性的get中和observerArray中(收集7种改变数组的方法造成的影响)
+
+  2. 数组变化的通知：在访问器属性的set中和数组方法对象的方法中
+
+     
+
+* 数组发生响应式改变的因素：
+
+  	1. 数组栈内存改变
+  	1. 数组引用类型元素发生改变
+  	1. 调用改变数组的7种方法
+
+  
+
+* 用户自定义监听事件：
+
+  1. 更改window.target为用户自定义回调函数
+  2. 主动触发对应属性的get方法
+  3. 触发get后自动将回调函数加入依赖存储器
+  4. 恢复window.target原值
