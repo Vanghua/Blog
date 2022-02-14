@@ -8,7 +8,7 @@
 
 **3. Model：** Vue框架下的JavaScript代码是是Model部分，负责提供数据和操作
 
-**4. 双向数据绑定：** 在“Vue深入响应式原理”这篇博客中，已经探究并实现了Vue中的数据绑定。即在ViewModel中实现绑定机制，使Model中的数据变化会导致View的变化。这是一个Model到View的单向数据绑定。从View到Model的数据绑定需要用户自己实现，只需要用户监听到View中的事件后修改Model中的数据即可。
+**4. 双向数据绑定：** 在“Vue深入响应式原理”这篇博客中，已经探究并实现了Vue中的数据绑定。即在ViewModel中实现绑定机制，使Model中的数据变化会导致View的变化。这是一个Model到View的单向数据绑定。从View到Model的数据绑定可以用户自己实现，只需要用户监听到View中的事件后修改Model中的数据即可；从View到Model的数据绑定也可以用Vue提供的v-model实现。
 
 ![](assests/MVVM.PNG)
 
