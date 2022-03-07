@@ -124,6 +124,8 @@ struct student {
     }
 };
 struct student st = student("Danny", 20, "male");
+// 也可以使用new创建，在堆内存中开辟空间
+struct student st2 = new student("Danny", 20, "male");
 ```
 
 **注意事项**
