@@ -1,0 +1,5 @@
+1.保证ref绑定成功。解决方案：Form.Item自动将传给子元素的ref转为函数形式，让comboTable兼容callback形式的ref
+2.校验失败后关闭下拉框。解决方案：不要在编辑表格中控制comboTable的open，open
+3.校验后的样式和鼠标悬浮样式重叠时会有性能问题。解决方案：不再支持editRender内的联动，只支持onValuesChange的联动
+4.单元格失焦后校验获取不到缓存的form，导致校验一定失败。解决方案：tpm中数据不是已进入就加载，所以刚开始没有forms缓存。useMemo添加forms依赖。
+5.刷新数据源后丢失了原来的校验状态。
