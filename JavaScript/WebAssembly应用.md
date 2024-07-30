@@ -20,23 +20,29 @@
 
 ### 1.2 WebAssembly
 
-> <font color=green>**概念：低级静态程序语言。**</font> 
+> <font color=blue>**概念：低级静态程序语言。**</font> 
 >
 > WebAssembly可以看做是针对于浏览器的一组指令集。它是低级程序语言。
 >
 > * 例如：它和汇编语言类似，只不过不同CPU的汇编语言不同，但是不同浏览器的WebAssembly都相同。
 >
-> <font color=green>**作用：在浏览器中运行。**</font> 
+> <font color=blue>**作用：在浏览器中运行。**</font> 
 >
 > 除了JavaScript外另一种可以直接在浏览器中运行的语言。
 >
 > * 例如：因为WebAssembly可以在浏览器中运行，因此C/C++，Rust等语言选择把它们编译成WebAssembly在浏览器运行。
 >
-> <font color=green>**特点：效率高。**</font>
+> <font color=green>**优点：效率高。**</font>
 >
 > 不需要通过高级程序员的解释器或编译器，是编译产物，免去这个耗时操作。
 >
 > * 例如：高级程序语言的一系列操作可以被汇编级语言优化成几次简单操作，例如优化后简单将数据在寄存器间移动就可能完成多个语句表示的操作。
+>
+> <font color=red>**缺点：使用局限**</font>
+>
+> JavaScript依赖Buffer和WebAssembly交换数据，如果数据本身不是Buffer类型，转换成Buffer的时间难以接受。
+>
+> * 例如：目前主流业务是处理音视频编码，图片压缩。可以直接操作Buffer数据。
 
 
 
