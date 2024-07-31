@@ -1,9 +1,3 @@
-> **参考：**
->
-> 阿里巴巴基于WebAssembly实现的Webcontainer环境
-
-
-
 ## 1.内存结构
 
 ### 1.1 JavaScript内存结构
@@ -79,7 +73,7 @@
 
 > <font color=green>**JavaScript访问Wasm内存**</font>
 >
-> > 加载完WebAssembly后Wasm默认导出自己的线性内存，JavaScript通过memory对象访问内存 <font color=blue>**（大概16MB）**</font>。
+> > 加载完WebAssembly后Wasm默认导出自己的线性内存，JavaScript通过memory对象访问内存 <font color=blue>**（最大大概16MB）**</font>。
 > >
 > > 一般是JavaScript通过调用Wasm函数返回指针或变量配合memory对象访问内存。
 > >
@@ -133,8 +127,26 @@
 > >
 > > <font color=red>**注：SharedArrayBuffer目前默认不支持使用，需要特殊配置响应头，因为共享缓冲区可能导致安全问题**</font>
 
-### 2.2 内存交换负担
+### 2.2 内存交换问题
 
-> **Buffer交换：**
+> <font color=green>**拷贝限制：**</font>
 >
-> 推荐基于Buffer的内存交换
+> > * **解释：** JavaScript不能直接向wasm传递引用或指针，需要拷贝数据。
+> >
+> > * **举例：**  
+> >   * **场景：** 在处理文件的场景下，JavaScript向wasm传递数据一般通过缓冲区（ArrayBuffer）的视图（TypedArray）进行传递。
+> >   * **内存交换：** 缓冲区和视图都不会把缓冲区内容读入内存，但是传递给wasm处理时必须将数据读入内存（拷贝过程）。因为wasm的隔离性，wasm只能读取自己的内存。
+> >   * **副作用：** 但是好消息是wasm的内存建立在缓冲区，读写速度不慢，也不占用浏览器内存。
+>
+> <font color=green>**大小限制：**</font>
+>
+> > * **解释：** wasm的内存有限制，容易溢栈。
+> > * **举例：** 
+> >   * **场景1：** 上面1.3中给出的图例中展示了emscripten编译的wasm，C语言和JavaScript都是默认操作，内存上限为16MB。已经达到了上限。
+> >   * **场景2：** 在npm发布的一些基于wasm的包（比如hash-wasm），wasm的内存上限可能是64KB，仅允许一次扩容，到128KB。
+>
+> <font color=green>**安全限制：**</font>
+>
+> > * **解释：** wasm的内存一般不通过SharedArrayBuffer交换，有安全问题，使用需要配置html页面的响应头。
+> > * **举例：**
+
