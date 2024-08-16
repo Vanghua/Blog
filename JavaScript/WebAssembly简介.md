@@ -227,8 +227,8 @@
 > > worker.postMessage(sharedArrayBuffer)
 > > 
 > > setTimeout(() => {
-> >     const startTime = sharedArrayBuffer[0]
-> >     // 你的幽灵攻击代码
+> >     const startTime = sharedArrayBuffer[0] 
+> >     // 你的幽灵攻击代码 0.0003
 > >     const endTime = sharedArrayBuffer[0]
 > >     // 利用高精度时间来分析你的幽灵攻击过程
 > > }, 
