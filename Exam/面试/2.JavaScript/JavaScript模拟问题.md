@@ -1,357 +1,107 @@
 ### 1.数据类型
 
-**1.JavaScript有哪些数据类型？**
+#### 数据类型列举
 
 > 八种基本类型：Number，String，Boolean，BigInt，Symbol，Undefined，Null，Object
 
+#### 数据类型检测
 
-
-**2.数据类型检测有哪些方法？**
-
-> （1）typeof判断八种类型，显示为对应类型的小写。
+> **typeof**
 >
-> * null被判断为object
-> * 函数被判断为function。
+> > * null被判断为object
+> > * 函数被判断为function。
 >
-> （2）instanceof通过原型链判断引用类型。
+> **instanceOf**
 >
-> * 左式不是对象则一直为false
+> > * 左值不是对象则为false
+> > * 右值不为类则报错
 >
-> （3）constructor通过构造函数判断有构造函数的类型。
+> **constructor**
 >
-> （4）Object.prototype.toString.call().slice(8, -1)判断所有类型
+> > constructor通过构造函数判断有构造函数的类型。
 >
-> * 自定义类型可以用[Symbol.toStringTag]修改返回值。
-
-
-
-**3.判断数组的方法有哪些？**
-
-> （1）Object.prototype.toString.call().slice(8, -1)判断
+> **Object.prototype.toString.call().slice(8, -1)**
 >
-> （2）Array.isArray判断
+> > * 自定义类型可以用[Symbol.toStringTag]修改返回值。
+
+#### 数据类型区别
+
+> **null和undefined区别**
 >
-> （3）instanceof原型链判断
-
-
-
-**4.null和undefined的区别是什么？**
-
-> （1）null和undefined都是原始类型，这两个原始类型下都只各有一个值null和undefined。
+> **类型：** null和undefined都是原始类型，这两个原始类型下都只各有一个值null和undefined。
 >
-> （2）null是JavaScript保留字。undefined不是保留字，可以用作变量名，可以通过void 后跟任何值安全获得undefined值。
+> **语义：** null是JavaScript保留字。undefined不是保留字，可以用作变量名，可以通过void 后跟任何值安全获得undefined值。
 >
-> （3）null表示一个空对象，只有栈内存没有堆内存。undefined表示变量已声明但未赋值。
+> **语义：** ull表示一个空对象，只有栈内存没有堆内存。undefined表示变量已声明但未赋值。
 >
-> （4）第一版JavaScript规定了存储数据的低三位用于类型判断，对象和null低三位都是0，在使用typeof时null会被误判为对象。undefined不会出现这种问题。
+> **类型判断：** 第一版JavaScript规定了存储数据的低三位用于类型判断，对象和null低三位都是0，在使用typeof时null会被误判为对象。undefined不会出现这种问题。
 >
-> （5）使用宽松相等判断null==undefined时会返回true，使用严格相等时会返回false。
+> **类型判断：** 使用宽松相等判断null==undefined时会返回true，使用严格相等时会返回false。
 
+#### 数据类型转换
 
-
-**5.typeof null 的结果为什么是object？**
-
-> 第一版JavaScript规定数据存储中低三位用于数据类型判断，object低三位为000，null所有位都是0。并且typeof以此判断数据类型，因此null会被误判为object。
-
-
-
-**6.instanceof该如何实现?**
-
-> instanceof先判断变量是否是对象，如果是对象则沿着原型链一直查找，是否有目标原型。
->
-> ```javascript
-> function imitateInstanceof(left, right) {
->     // 开启尾调用优化条件
->     "use strict";
 > 
->     // 检查右值是否有[Symbol.hasInstance]属性
->     if (right && !right[Symbol.hasInstance])
->         throw new TypeError("类型检查函数的第二个参数必须是类")
-> 
->     // 如果左值不是引用类型，那么不存在原型链，直接返回false
->     if(!left || left && typeof left !== "object" && typeof left !== "function")
->         return false
-> 
->     // 初始值设置
->     // 如果getPrototypeOf传入一个原始类型，那么会经历装箱，变成引用类型来寻找原型链，所以之前必须检查left是否是原始类型
->     let leftProto = Object.getPrototypeOf(left)
->     let rightProto = right.prototype;
-> 
->     // 使用尾调用优化
->     return (function check() {
->         if(!leftPrototype)
->             return false
->         else if(leftPrototype === rightPrototype)
->             return true
->         else {
->             leftPrototype = Object.getPrototypeOf(leftPrototype)
->             return check()
->         }
->     })();
-> }
-> ```
 
 
 
-**7.为什么0.1 + 0.2 ！= 0.3，如何让其相等？**
+#### 运算符优先级
 
-> JavaScript的数值类型使用IEEE754 64位标准存储，0.1和0.2不能二进制小数被精确表示，因此相加不为0.3。
+> **从低到高**
 >
-> 解决方法：
+> 1. 逗号
 >
-> （1）调用toFixed函数四舍五入变成字符串，然后再转化为数值。（2）把小数运算变成整数运算，同乘10.
-
-
-
-**8.如何安全获得undefined值？**
-
-> void 0。
+> 2. 赋值运算
 >
-> void后跟一个表达式但是不返回值，因此void 0的结果是undefined。所以void后面跟任何表达式都可以获取安全的undefined值。
-
-
-
-**9.引用类型到基本类型的转化规则是什么？**
-
-> （1）偏数值算法：先调用valueOf若失败再调用toString
+> 3. 条件三目运算
 >
-> （2）偏字符串算法：先调用toString若失败再调用valueOF。
+> 4. 逻辑或和空值合并运算
 >
-> （3）无偏好算法：可以通过[Symbol.toPrimitive]改写原始偏好算法。在JavaScript中除了Date是偏字符串算法之外都是偏数值算法。
-
-
-
-**10.其它类型到布尔类型的转化规则是什么？**
-
-> 真值转化为true，假值转化为false。假值只有7个是0，-0，NaN，“”，undefined，null，false会转化为false，其余都会转化为true。
-
-
-
-**11.其它类型到字符类型的转化规则是什么？**
-
-> （1）基本类型都是直接转换，即加上双引号。
+> 5. 逻辑与运算
+> 5. 按位或运算
+> 5. 按位异或预算
+> 5. 按位与预算
+> 5. 相等运算
+> 5. 比较运算（in，instanceOf）
+> 5. 位移运算
+> 5. 加减运算
+> 5. 乘除模运算
+> 5. 幂运算
+> 5. 一元运算（await，delete，void）
 >
-> * BigInt类型转化时会去掉n
+> **逗号最低别忘掉，赋值运算也重要。**
+> **条件三目看仔细，逻辑或来空值并。**
+> **逻辑与后位运算，或异与来要分明。**
+> **相等比较别混淆，ins实例也要清。**
+> **位移加减心中留，乘除模来不可丢。**
+> **幂运一元最高级，await删空要牢记。**
+
+
+
+### 2.对象
+
+#### this指向
+
+> **this指向确定：**
 >
-> （2）数组比较特殊。
+> 运行时词法环境确定时确定this指向。
 >
-> * 空数组转换为空串
-> * 其它形式的数组都按join(",")方法转化，然后对每个元素做字符类型的转化
+> 非严格模式this默认指向全局对象；严格模式this默认指向undefined。
 >
-> （3）引用类型按偏好算法转换。
-
-
-
-**12.其它类型到数值类型的转化规则是什么？**
-
-> （1）特殊类型：
+> **this指向改变：**
 >
-> * null转化为0
-> * undefined转化为NaN
-> * false转化为0，true转化为1
-> * Symbol无法转化为数值
-> * String数值字符串转化为数值其它字符串转化为NaN。
+> 三种改变this指向的方法，按改变this的优先程度是：
 >
-> （2）引用类型按偏好算法转换。
+> （1）构造函数调用
 >
-> 注：例如数组，先转化为字符串再转为数组，空数组转为0，单个元素的数值数组转为该元素等等
-
-
-
-**13.如何进行隐式类型转换？**
-
-> 隐式类型转换可以理解为不调用类型转换函数的转换。例如使用运算符隐式转换。
+> （2）call，apply，bind调用
 >
-> （1）一元操作符+或-：表示正负数。转化为数值。
+> （3）对象方法调用
 >
-> （2）二元操作符+或-：表示加减运算。如果存在字符串那么都转化为字符串，否则都转化为数值。
+> **this指向继承：**
 >
-> （3）二元操作符*或/：表示乘除运算。转化为数值。
->
-> （4）二元操作符==或!=：表示宽松相等。除了null和undefined外，都转化为数值。
->
-> （5）二元操作符>或<或>=或<=：表示比较。如果存在字符串那么转化为字符串，否则都转化为数值。
->
-> （6）一元操作符!!：表示两次取反。转化为布尔值。
+> 箭头函数this继承自所在函数或全局作用域。
 
-
-
-**14.||和&&操作符返回值是什么？**
-
-> 与和或操作符会根据两边真值假值进行运算。与操作符只有操作符两侧都是真值才会返回操作符后的表达式结果，否则返回假值对应表达式结果。或操作符只有操作符两侧都是假值才会返回操作符后的表达式结果，否则返回真值对应表达式结果。
-
-
-
-**15.Object.is()和==和===都是判断相等，有什么区别？**
-
-> * ==是宽松相等，比较前会做类型转换，除了null和undefined，会转化为数值再比较。
->
-> * ===是严格相等，比较前不会做类型转换。
-> * Object.is(val1, val2)是经过修改的严格相等，+0和-0相等，NaN和NaN相等。
-
-
-
-**16.isNaN函数和Number.isNaN函数的区别？**
-
-> * isNaN在判断时会先做类型转换，转换为数值再判断是不是NaN。
-> * Number.isNaN不会做类型转换。非数值都不会是NaN。
-
-
-
-**17.什么是JavaScript装箱和拆箱？**
-
-> * 装箱是基本类型到引用类型。指JavaScript基本类型没有方法，想要访问方法需要先使用基本类型工厂函数包装为引用类型才能访问方法。
->
-> * 拆箱是引用类型到基本类型，可以通过valueOf和toString方法拆箱。
-
-
-
-**18.为什么会有BigInt提案？**
-
-> JavaScript数值采用IEEE754 64位标准存储，尾数52位，表示的最大整数精度是16位。用超过16位的整数进行科学计算会丢失精度，因此提出BigInt提案扩展计算精度。
-
-
-
-### 2.ES6
-
-**19.你有使用过ES6的什么内容？**
-
-> （1）新的数据类型：Symbol用于call实现中给对象添加一个不重复属性。BigInt用于解决机器学习问题。
->
-> （2）解构：机器学习函数参数比较多，利用解构描述形参，解构传参可以不按照变量顺序传参。解构提取深层嵌套对象中的内容。
->
-> （3）三点运算符：call实现中接收参数。展开数组。迭代对象。
->
-> （4）Promise异步编程：fetch发起网络请求。
-
-
-
-**20.const和let的区别？**
-
-> （1）const声明变量必须赋初始值。
->
-> （2）const声明变量栈内存指针不能修改。
-
-
-
-**21.let/const和var的区别？**
-
-> （1）作用域不同。let/const是块级作用域，var是函数作用域。
->
-> （2）变量提升和暂时性死区。var声明的变量在声明前可以使用，但是值为undefined。let/const声明的变量在声明前不能使用。
->
-> （3）重复声明。var声明的变量可以重复声明，后声明的覆盖先声明的。let/const声明的变量不能重复声明。
-
-
-
-**22.箭头函数和普通函数的区别？**
-
-> （1）箭头函数的this继承自函数作用域，且不能被其它方法修改。普通函数的this要视情况而定，默认指向全局对象globalThis；作为对象方法时指向对象；可以被call，apply，bind修改。
->
-> （2）箭头函数由于this不可被修改，因此不可作为构造函数。普通函数可以作为构造函数。
->
-> （2）箭头函数没有Prototype，普通函数有Prototype。
->
-> * 注意一个情况，对象属性中的函数如果使用ES6写法也会导致prototype为undefined
->
-> （3）箭头函数没有自己的arguments，普通函数有arguments。
-
-
-
-**23.三点运算符如何使用？**
-
-> （1）函数形参中表示收集变量。函数实参中表示展开可迭代对象作为实参。
->
-> （2）数组中或对象中表示对数组或对象的浅拷贝，此时不需要考虑对象是否是可迭代的。此时三点运算符后跟任何值都是合理的，如果不可浅拷贝则会返回空元素或空字段。
->
-
-
-
-**24.谈谈对解构的理解？**
-
-> 解构是一种针对性提取数据的方法。
->
-> （1）数组解构是按照下标解构，对象解构是按照属性解构
->
-> （2）解构可以方便地提取深层嵌套对象中的数据。函数参数过多时记不住顺序可以使用使用解构。
->
-> ```javascript
-> // 数组解构
-> let [a, b, c] = [1, 2, 3] // a = 1, b = 2, c = 3
-> 
-> // 对象解构
-> let obj = {
->     name: "Danny",
->     gender: "man"
-> }
-> // ES6增强型对象写法
-> let { name, gender } = obj
-> // 对象解构普通写法，属性值用于存储提取出来的数据，属性名要和原对象属性名相同
-> let { name: name2, gender: gender2 } = obj
-> 
-> // 深层对象嵌套
-> let obj = {
->     event: {
->         target: {
->             result: "Danny"
->         }
->     }
-> }
-> let { event: { target: { result } } } = obj
-> console.log(result)
-> 
-> // 函数参数
-> function linearRegression({theta, Y, X, alpha = 0.5, iter =10000}) {
->     // 略
-> }
-> 
-> let theta = []
-> let X = []
-> let Y = []
-> 
-> // 调用时只需要直到有哪些参数即可，不需要考虑它们的顺序
-> linearRegression({theta: theta, X: X, Y: Y})
-> ```
-
-
-
-**25：怎样不使用额外的变量来交换两个变量的值？**
-
-> **（1）使用解构赋值**
->
-> ```javascript
-> let a = 1
-> let b = 2
-> [a, b] = [b, a]
-> ```
->
-> **（2）使用位运算（对于非数值类型不行）**
->
-> ```javascript
-> let a = 1
-> let b = 2
-> a = a ^ b
-> b = a ^ b
-> a = a ^ b
-> ```
->
-> **原理：**
->
-> * 一个数和自己异或一定为零
-> * 一个数和零异或一定为自己
-> * 异或操作具有结合律
->
-> ```a = a ^ b```
->
-> ```b = (a ^ b) ^ b = a ^ (b ^ b) = a ^ 0 = a```
->
-> ```a = (a ^ b) ^ a = (a ^ a) ^ b = b```
-
-
-
-### 3.JavaScript基础
-
-**25.new操作符实现原理是什么？**
+#### new实现内容
 
 > （1）创建一个空对象
 >
@@ -360,6 +110,702 @@
 > （3）绑定该对象的prototype指向构造函数的原型
 >
 > （4）判断构造函数返回值类型，如果是引用类型则返回引用类型，如果是基本类型则返回该对象
+
+#### ES5模拟继承
+
+> **按迭代顺序来看：**
+>
+> **1.ES5前—原型链模式：**
+>
+> > **实现：**
+> >
+> > 原型调用父类构造函数。
+> >
+> > **缺点：**
+> >
+> > * **共享引用：** 所有子类实例都共享父类实例的属性。
+> >
+> > * **无法传参：** 调用父类构造函数时不能根据子类实例特性传参。
+>
+> **2.ES5前—盗用构造函数模式：**
+>
+> > **实现：**
+> >
+> > 构造函数中调用父类构造函数。
+> >
+> > **缺点：**
+> >
+> > * **无法继承方法：** 子类实例可以继承父类属性，无法继承父类方法。
+>
+> **3.ES5前—组合模式：**
+>
+> > **实现：**
+> >
+> > 构造函数中调用父类构造函数。原型调用父类构造函数。
+> >
+> > **缺点：**
+> >
+> > * **浪费空间：** 父类属性存储两遍，一次在子类实例，一次在原型。
+>
+> **4.ES5前—寄生组合模式：**
+>
+> > **实现：**
+> >
+> > 原型不调用父类构造函数。中间类的原型指向父类原型。子类原型为中间类实例。
+> >
+> > **优化：** 
+> >
+> > 优化了原型调用两次父类构造函数的问题。
+>
+> **5.ES5—原型模式：**
+>
+> > **实现：**
+> >
+> > 调用Object.create
+> >
+> > **缺点：**
+> >
+> > * **共享引用：** 所有实例共享一个对象上的属性。
+> > * **无法复用方法：** 每次实例化要重新声明方法。
+>
+> **6.ES5—寄生模式：**
+>
+> > **实现：**
+> >
+> > 调用Object.create，之后再扩展新属性。
+> >
+> > **缺点：** 
+> >
+> > 缺点同上
+
+#### arguments用法
+
+> **含义：**
+>
+> > **表示—类数组：**
+> >
+> > 可迭代类数组对象。
+> >
+> > **表示—函数实参：**
+> >
+> > arguments表示函数的实参，length表示函数的形参。
+> >
+> > 注意：不写形参不影响arguments接收实参。
+> >
+> > **表示—函数引用：**
+> >
+> > arguments.callee指向当前函数，深拷贝函数时处理递归可以使用该属性。
+> >
+> > 注意：严格模式下无法接收callee。
+>
+> **副作用：**
+>
+> > **副作用—特殊参数：**
+> >
+> > arguments非严格模式下无法追踪“解构，初始值，剩余参数”相关实参。
+
+#### 类数组对象
+
+> **含义：**
+>
+> > 拥有length和index索引的对象。例如：
+> >
+> > * String
+> > * 函数内部的arguments
+> > * NodeList和HTMLCollection
+>
+> **转换到数组：**
+>
+> > * Array.from
+> > * 通过原型调用Array上的方法
+
+#### NodeList和HTMLCollection区别
+
+> **获取方法：**
+>
+> > **NodeList新方法：**
+> >
+> > * HTMLElement.querySelector相关方法
+> > * HTMLElement.childNodes
+> >
+> > **HTMLCollection旧方法：**
+> >
+> > * HTMLElement.getElementBy相关方法
+> > * HTMLElement.children
+>
+> **动态和静态：**
+>
+> > NodeList动态，HTMLCollection静态。NodeList可以实时反应DOM元素变化。
+
+#### 函数深拷贝
+
+> **必要性**
+>
+> > 没必要深拷贝
+> >
+> > * **主流库效果：** lodash深拷贝不包括函数。
+> > * **共享引用：** 深拷贝是避免修改堆内存时影响全局，一般不修改函数的属性。
+> > * **跨窗口通信：** iframe之间或者worker之间通信一般使用MessageChannel，一般不序列化函数。
+>
+> **实现方式**
+>
+> > * **识别函数体：** 识别普通函数，箭头函数，ES6增强写法的函数。传入new Function。
+> > * **替换递归调用：** 递归调用替换为arguments.callee调用。
+
+#### Object.assign
+
+> 
+
+#### 自有属性和可枚举属性
+
+> **可枚举属性：**
+>
+> > * **enumerable：** enumerable设置为true。
+> > * **可枚举操作：** 可以出现在可枚举操作中，例如for in，Object.keys，展开语法等等。
+>
+> **自有属性：**
+>
+> > * **原型链：** 自己的非原型链继承的属性。
+> > * **自有属性操作：** hasOwnProperty。
+
+
+
+### 3.闭包/作用域/执行上下文
+
+#### 闭包
+
+> **含义：**
+>
+> > 函数和声明时的词法环境绑定，即用函数声明时的作用域和函数内部变量解析函数的机制是闭包机制。
+>
+> **应用：**
+>
+> > **访问函数内部变量：**
+> >
+> > 函数返回一个函数，使外部可以通过返回值访问函数内部变量。
+> >
+> > **持久存储：**
+> >
+> > 函数返回一个函数，引用函数内部变量。
+> >
+> > **作用域隔离：**
+> >
+> > 函数嵌套一个函数，嵌套函数作为模块，内部声明变量，被嵌套函数执行逻辑。
+
+#### 闭包内存泄漏
+
+> **原因：**
+>
+> > 函数中返回的函数引用了函数内部的对象，导致内存无法被释放。
+>
+> **解决：**
+>
+> > （1）不使用时主动设置对象为null。
+> >
+> > （2）如果使用对象的某些属性，就直接用栈内存拷贝，不引用整个堆内存。
+
+#### 节流防抖
+
+> **节流：**
+>
+> >**概念：**
+> >
+> >X秒内最多执行一次。
+> >
+> >**应用：**
+> >
+> >搜索框搜索；表单提交；按钮点击。
+>
+> **防抖：**
+>
+> >**概念：**
+> >
+> >上一次调用后延迟X秒执行。
+> >
+> >**应用：**
+> >
+> >滚动事件；窗口大小变化。
+
+#### 作用域
+
+> 全局作用域
+>
+> 函数作用域
+>
+> 局部作用域
+>
+> eval作用域
+
+#### 作用域链
+
+> 
+
+
+
+### 4.ES6
+
+#### let和const区别
+
+> **初始值**
+>
+> const声明变量必须赋初始值。
+>
+> **栈内存不可变**
+>
+> const声明变量栈内存指针不能修改。
+
+#### let/const和var区别
+
+> **作用域**
+>
+> let/const是块级作用域，var是函数作用域。
+>
+> **重复声明**
+>
+> var声明的变量可以重复声明，后声明的覆盖先声明的。let/const声明的变量不能重复声明。
+>
+> **变量提升和暂时性死区**
+>
+> var声明的变量在声明前可以使用，但是值为undefined。let/const声明的变量在声明前不能使用。
+
+#### 箭头函数和普通函数区别
+
+> **prototype，arguments，super**
+>
+> 没有prototype，arguments，super。特例是ES6对象增强型方法也没有prototype。
+>
+> **this指向**
+>
+> this继承自所在函数或全局作用域。
+
+#### 展开和剩余语法使用场景
+
+> **展开语法**
+>
+> > **描述函数实参**
+> >
+> > * **要求：** 只能展开可迭代对象
+> >
+> > **构造数组或对象字面量**
+> >
+> > * **数组：** 只能展开可迭代对象
+> > * **对象：** 复制可枚举属性
+>
+> **剩余语法**
+>
+> > **描述函数形参**
+> >
+> > * **解构：** 用于解构数组或对象，收集参数到数组或对象
+
+#### 迭代器和生成器
+
+> 
+
+
+
+### 5.代码实现
+
+#### instanceOf
+
+> ```javascript
+> function _instanceOf(left, right) {
+>   // 1.校验左值
+>   if (!(left && (typeof left === "object" || typeof left === "function"))) {
+>     return false;
+>   }
+>   // 2.校验右值
+>   if (!(typeof right === "function")) {
+>     throw new Error("必须是构造函数");
+>   }
+> 
+>   let prototype = Object.getPrototypeOf(left);
+>   while (prototype) {
+>     if (prototype === right.prototype) {
+>       return true;
+>     } else {
+>       prototype = Object.getPrototypeOf(prototype);
+>     }
+>   }
+>   return false;
+> }
+> ```
+
+#### curry
+
+> ```javascript
+> const curry = (func) => {
+>   return (...args) => {
+>     if (args.length >= func.length) {
+>       return func(...args);
+>     } else {
+>       return curry(func.bind(null, ...args));
+>     }
+>   };
+> };
+> ```
+
+#### new
+
+> ```javascript
+> function _new(constructor, ...args) {
+>   // 1.创建空对象
+>   const target = {};
+>   // 2.绑定this
+>   const result = constructor.call(target, ...args);
+>   const object = typeof result === "object" && result ? result : target;
+>   // 3.绑定prototype
+>   Object.setPrototypeOf(object, constructor.prototype);
+>   // 4.返回this或新对象
+>   return object;
+> }
+> ```
+
+#### bind和call
+
+> **call**
+>
+> ```javascript
+> Function.prototype._call = function (context, ...args) {
+>   let contextObj;
+>   // 1.格式化上下文
+>   if (context === null || context === void 0) {
+>     contextObj = globalThis;
+>   } else if (typeof context !== "object" && typeof context !== "function") {
+>     contextObj = Objec(context);
+>   } else {
+>     contextObj = context;
+>   }
+>   // 2.上下文定义方法
+>   const propName = Symbol("");
+>   Object.defineProperty(contextObj, propName, {
+>     value: this,
+>   });
+>   // 3.上下文调用函数
+>   contextObj[propName](...args);
+>   delete contextObj[propName];
+> };
+> ```
+>
+> **bind**
+>
+> ```javascript
+> Function.prototype._bind = function (context, ...args) {
+>   return (...rest) => {
+>     return this.call(context, ...args, ...rest);
+>   };
+> };
+> ```
+
+#### ES5模拟类
+
+> **组合模式**
+>
+> ```javascript
+> function Student(school, grade) {
+>   this.school = school;
+>   this.grade = grade;
+> }
+> 
+> Student.prototype.getSchool = function () {
+>   return this.school;
+> };
+> Student.prototype.getGrade = function () {
+>   return this.grade;
+> };
+> ```
+
+#### ES5模拟继承
+
+> **组合模式**
+>
+> ```javascript
+> function Person(name, gender) {
+>   this.name = name;
+>   this.gender = gender;
+> }
+> 
+> Person.prototype.getName = function () {
+>   return this.name;
+> };
+> Person.prototype.getGender = function () {
+>   return this.gender;
+> };
+> 
+> function Student({ name, gender, school, grade }) {
+>   // 1.盗用构造函数
+>   Person.call(this, name, gender);
+>   this.school = school;
+>   this.grade = grade;
+> }
+> // 2.原型继承
+> Student.prototype = new Person();
+> Student.prototype.getSchool = function () {
+>   return this.school;
+> };
+> Student.prototype.getGrade = function () {
+>   return this.grade;
+> };
+> ```
+>
+> **寄生组合模式**
+>
+> ```javascript
+> function inherit(Father, Son) {
+>   // 3.通过中间类实例访问原型
+>   function F() {}
+>   F.prototype = Father.prototype;
+>   const prototype = new F();
+>   prototype.constructor = Son;
+>   return prototype;
+> }
+> 
+> function Person(name, gender) {
+>   this.name = name;
+>   this.gender = gender;
+> }
+> 
+> Person.prototype.getName = function () {
+>   return this.name;
+> };
+> Person.prototype.getGender = function () {
+>   return this.gender;
+> };
+> 
+> function Student({ name, gender, school, grade }) {
+>   // 1.盗用构造函数
+>   Person.call(this, name, gender);
+>   this.school = school;
+>   this.grade = grade;
+> }
+> // 2.原型寄生
+> Student.prototype = inherit(Person, Student);
+> Student.prototype.getSchool = function () {
+>   return this.school;
+> };
+> Student.prototype.getGrade = function () {
+>   return this.grade;
+> };
+> ```
+
+#### 深拷贝
+
+> ```javascript
+>  const cloneDeep = (target) => {
+>       const wm = new WeakMap();
+> 
+>       const clone = (target) => {
+>         if (!(target && typeof target === "object")) {
+>           return target;
+>         }
+> 
+>         if (wm.has(target)) {
+>           return wm.get(target);
+>         }
+> 
+>         let result = null;
+>         if (Array.isArray(target)) {
+>           result = [];
+>         } else {
+>           result = {};
+>         }
+> 		// 注意：记录的是当前对象target被拷贝为了新对象result
+>         wm.set(target, result);
+> 
+>         Object.entries(target).forEach(([key, value]) => {
+>           if (value && typeof value === "object") {
+>             result[key] = clone(value);
+>           } else {
+>             result[key] = value;
+>           }
+>         });
+> 
+>         return result;
+>       };
+> 
+>       return clone(target);
+>     };
+> ```
+
+#### 数组打平
+
+> ```javascript
+> const flatArray = (arr, depth = 1) => {
+>   const result = [];
+>   (Array.isArray(arr) ? arr : []).forEach((el) => {
+>     if (Array.isArray(el) && depth >= 1) {
+>       result.push(...flatArray(el, depth - 1));
+>     } else {
+>       result.push(el);
+>     }
+>   });
+>   return result;
+> };
+> ```
+
+#### 数组去重
+
+> **场景1：只有数值：**
+>
+> > ```javascript
+> > // 1.辅助对象实现去重。返回的是字符串
+> > const filterByObj = (arr) => {
+> >   return Object.keys(
+> >     arr.reduce((target, el) => {
+> >       target[el] = true;
+> >       return target;
+> >     }, {})
+> >   );
+> > };
+> > 
+> > // 2.辅助数组实现去重。
+> > const filterByArr = (arr) => {
+> >   const result = [];
+> >   return arr.filter((el) => {
+> >     if (result.includes(el)) {
+> >       return false;
+> >     } else {
+> >       result.push(el);
+> >       return true;
+> >     }
+> >   });
+> > };
+> > 
+> > // 3.集合实现去重
+> > const filterBySet = (arr) => {
+> >   return Array.from(new Set(arr));
+> > };
+> > ```
+>
+> **场景2：对象属性相同也视为相同：**
+>
+> > ```javascript
+> > const isObject = (item) => {
+> >   return item && (typeof item === "object" || typeof item === "function");
+> > };
+> > 
+> > // 核心判断：两个对象是否每个属性相等
+> > const isEqual = (valueA, valueB) => {
+> >   if (isObject(valueA) && isObject(valueB)) {
+> >     // 1.判断：键数量相等
+> >     if (Object.keys(valueA).length !== Object.keys(valueB).length) {
+> >       return false;
+> >     } else {
+> >       // 2.判断：每个键值判断相等性
+> >       return Object.keys(valueA).every((key) => {
+> >         if (isObject(valueA[key]) && isObject(valueB[key])) {
+> >           return isEqual(valueA[key], valueB[key]);
+> >         } else {
+> >           return valueA[key] === valueB[key];
+> >         }
+> >       });
+> >     }
+> >   } else {
+> >     return Object.is(valueA, valueB);
+> >   }
+> > };
+> > 
+> > const filter = (arr) => {
+> >   const result = [];
+> >   return arr.filter((el) => {
+> >     if (result.find((item) => isEqual(item, el))) {
+> >       return false;
+> >     } else {
+> >       result.push(el);
+> >       return true;
+> >     }
+> >   });
+> > };
+> > ```
+
+#### 节流防抖
+
+> **节流**
+>
+> ```javascript
+> const throttle = function (func, wait) {
+>      let now = 0;
+>      return function (...args) {
+>        if (Date.now() - now - wait >= 0) {
+>          func(...args);
+>          now = Date.now();
+>        }
+>      };
+>    };
+>    ```
+>    
+>   **防抖**
+>    
+>    ```javascript
+>    const debounce = function (func, wait) {
+>     let timeId = null;
+>      return function (...args) {
+>        timeId && clearTimeout(timeId);
+>        timeId = setTimeout(() => func(...args), wait);
+>      };
+>    };
+>    ```
+
+#### 并发控制
+
+> ```javascript
+> // 注意：并发控制只需要维护：1.等待进行的任务。2.正在进行的任务（数）
+> const multiControl = (tasks, maxNum) => {
+>   let taskNum = 0;
+>   const pendingQueue = [];
+> 
+>   const run = async (task) => {
+>     if (taskNum < maxNum) {
+>       taskNum++;
+>       await task();
+>       taskNum--;
+>       const nextTask = pendingQueue.shift();
+>       nextTask && run(nextTask);
+>     } else {
+>       pendingQueue.push(task);
+>     }
+>   };
+> 
+>   tasks.forEach(run);
+> };
+> ```
+
+#### 重传控制
+
+> ```javascript
+> // 注意1：并发控制只需要维护：1.等待进行的任务。2.正在进行的任务（数）
+> // 注意2：重传控制只需要维护：在并发控制上添加一个重传函数
+> const execControl = (tasks, maxNum, retryNum) => {
+>   let taskNum = 0;
+>   const pendingQueue = [];
+> 
+>   const run = async (task) => {
+>     if (taskNum < maxNum) {
+>       taskNum++;
+>       try {
+>         await task();
+>         taskNum--;
+>       } catch {
+>         taskNum--;
+>         return Promise.reject();
+>       }
+>       const nextTask = pendingQueue.shift();
+>       nextTask && run(nextTask);
+>     } else {
+>       pendingQueue.push(task);
+>     }
+>   };
+> 
+>   const retryRun = async (task, tryTime) => {
+>     return run(task).catch(() => {
+>       return tryTime > 0 ? retryRun(task, tryTime - 1) : Promise.reject();
+>     });
+>   };
+> 
+>   tasks.forEach((task) => retryRun(task, retryNum));
+> };
+> ```
+
+
 
 
 
@@ -376,21 +822,6 @@
 > （5）Map是可迭代对象，Object必须有迭代器协议才能迭代。
 >
 > （6）Map对频繁增删键值对情景有优化，Object对频繁增删键值对情景无优化
-
-
-
-**27.Map是怎么实现的？**
-
-> （1）Map其实就是通过键快速查找到值，实现Map其实就是实现高效查找算法。
->
-> * C++中std中的Map的实现是红黑树实现，不论是添加还是删除都能不超过3次旋转维护红黑树性质，插入删除指定位置查询时间复杂度在O(n)，维护性质的时间复杂度在O(1)
-> * JavaScript中的Map可能是通过哈希实现，时间复杂度是O(1)，但是哈希函数的碰撞/冲突率不能保证一定很低，所以事实上哈希查询的时间复杂度不一定能保证在O(1)
->
-> （2）其实和Map类似的还有定时器setTimeout。一些C++库中的定时器会选择红黑树或跳表或堆来实现，因为定时器的底层涉及到轮询，因此要能实现快速查找定时器，避免时间精度损失。
->
-> （3）和Map类似的还有Set。因为向集合中插入元素时要考虑不能重复，并且在集合中还需要能快速判断一个元素是否存在。所以C++的std的Set有红黑树的实现形式。
->
-> （4）总结一下，默认API的实现取决于编译器或解释器。例如JavaScript一般使用V8引擎。例如一般使用babel将代码编译成ES5代码，其中ES6的API怎么实现，就取决于babel如何处理。
 
 
 
@@ -431,45 +862,6 @@
 > （4）宏任务队列：可以将脚本内容放入setTimeout中等html解析完后执行。
 >
 > （5）放置到文档底部：将script标签放到文档底部，不阻塞html解析。
-
-
-
-**32.什么是类数组对象？**
-
-> 拥有length和index索引的对象。例如：
->
-> * String
->
-> * 函数内部的arguments
-> * HTMLCollection
-> * NodeList
-
-
-
-**33.解释一下NodeList和HTMLCollection的区别？**
-
-> （1）获取这两种类型的方法不同。
->
-> * NodeList：
->   * HTMLElement.querySelector相关方法
->   * HTMLElement.childNodes
-> * HTMLCollection：
->   * HTMLElement.getElementBy相关方法
->   * HTMLElement.children
->
-> （2）NodeList是动态的HTMLCollection是静态快照。NodeList获取之后，其中的DOM元素发生增删变化，NodeList都能反应。HTMLCollection无法反应。
->
-> （3）两者都是类数组对象，两者其中存储的都是真实DOM的引用。
-
-
-
-**33.如何将类数组对象转化为数组对象？**
-
-> （1）Array.from方法中传入类数组对象
->
-> （2）通过原型调用Array方法。slice或splice或concat（与空数组拼接）。将类数组对象传入其中。
->
-> （3）通过原型调用Array方法。类数组对象会被默认转为数组对象进行执行。
 
 
 
@@ -529,20 +921,6 @@
 > （1）返回值不同。map的处理函数依据原数组元素返回一个新值。filter的处理函数以及数组元素返回true或false。
 >
 > （2）返回数组长度不同。map返回一个新数组和原数组长度相同，对每个元素都做了映射。filter返回一个新数组和原数组长度不一定相同，filter不会处理undefined元素，会抛弃返回值为false的元素。
-
-
-
-**38.数组怎样去重？**
-
-> （1）O(n)的操作。
->
-> * 把数组元素加入set，再把set转为数组。
-> * 和set类似，借助map来去重，可以解决数组中存在对象类型的数据。
-> * 让数组元素作为对象的键，再提取对象的键。
->
-> （2）O(n^2)的操作。
->
-> * 遍历数组，在插入元素时寻找一下原数组中是否存在该元素。可以进行优化，查找可以做二分查找。
 
 
 
@@ -641,27 +1019,6 @@
 
 
 
-**42.fetch如何使用？**
-
-> ```javascript
-> fetch("/api/test", {
-> 	headers,
-> 	method,
-> 	body
-> }).then(res => {
->     if(res.status == 200)
->         return res.text()
->     else
->         throw "error"
-> }).then(ans => {
->     return ans
-> }).catch(error = {
->     
-> })
-> ```
-
-
-
 **43.fetch和XMLHttpRequest发起网络请求有什么区别？**
 
 > （1）fetch最初不支持终止网络请求，现在可以用AbortController类终止Promise请求。XHR可以终止网络请求。
@@ -687,34 +1044,6 @@
 > （2）共同点：ES6和CommonJS都可以修改引用的对象的内部值。
 
 
-
-**46.常见DOM选择节点操作有哪些？**
-
-> （1）老式方法：
->
-> document.getElementById。document.getElementsByClassName。document.getElementsByTagName。
->
-> （2）新方法：
->
-> document.querySelector。
->
-> document.querySelectorAll。
-
-
-
-**47.常见DOM添加节点操作有哪些？**
-
-> （1）element.append添加到孩子的末尾，element.prepend添加到孩子的开头。
->
-> （2）element.after添加到自己后面，element.before添加到自己前面。
-
-
-
-**48.常见DOM删除节点操作有哪些？**
-
-> （1）element.remove删除自己
->
-> （2）element.replaceWith替换自己
 
 
 
@@ -781,10 +1110,6 @@
 
 
 
-**53.原型链的终点是什么？**
-
-> 原型链的终点是null而不是某一个对象
-
 
 
 **54.如何获得对象非原型链上的属性？**
@@ -800,10 +1125,6 @@
 
 
 ### 5.执行上下文/作用域链/闭包
-
-**56.谈谈对闭包的理解？**
-
-> 闭包是一种机制，即用函数声明时的作用域和函数内部变量解析函数的机制是闭包机制。闭包机制通常表现形式是，一个函数内部声明另一个函数，内函数访问并持有外函数变量的引用。
 
 
 
@@ -835,82 +1156,6 @@
 > * 将声明式函数加入变量环境，属性值为函数本身。
 
 
-
-### 6.this/call/apply/bind
-
-**59.改变this指向操作的优先级是什么？**
-
-> this默认指向全局对象，有四种改变this指向的方法，分别为函数调用；对象方法调用；构造函数调用；call，apply，bind调用。
->
-> 改变this的优先程度是：
->
-> （1）构造函数调用
->
-> （2）call，apply，bind调用
->
-> （3）对象方法调用
->
-> （4）函数调用
-
-
-
-**60.call和apply的区别是什么？**
-
-> call和apply只有使用形式上的区别。
->
-> * call接收若干个参数，第一个参数指定this指向，后续参数指定传入参数。
->
-> * apply接收两个参数，第一个参数指定this指向，第二个参数是数组，指定传入参数。
-
-
-
-**61.call，apply如何实现？**
-
-> （1）call，apply实现思路是让函数作为绑定的this对象的属性来调用，为了避免属性冲突可以使用Symbol作为属性。
->
-> （2）call，apply也可以使用ES6中的代理对象实现。
->
-> ```javascript
-> // call的精简版实现，不考虑类型检查等问题
-> Object.prototype.$call = function(tar, ...args) {
->  let prop = Symbol("call")
->  tar[prop] = this
->  let res = tar[prop](...args)
->  delete tar[prop]
->  return res
-> }
-> 
-> // ES6的Proxy实现
-> Object.prototype.$call = function(tar, ...args) {
->  return new Proxy(this, {
->      apply(target, thisArg, argArray) {
->          return Reflect.apply(target, tar, args)
->      }
->  })(...args)
-> }
-> ```
-
-
-
-**62.bind如何使用？**
-
-> bind接收若干个参数，第一个参数表示绑定函数中的this，后续若干个参数表示给函数传入初始参数。调用bind后返回一个新函数为绑定后的函数，bind不影响原函数。
-
-
-
-**63.bind如何实现？**
-
-> bind的实现是返回一个未执行的函数，用于接收bind未接收到的参数。该函数内部返回原函数调用call绑定this和参数的结果。
->
-> ```javascript
-> // bind实现精简版
-> Object.prototype.$bind = function(tar, ...args) {
->     let that = this
->     return function Fun(...restArg) {
->         return that.call(tar, ...args, ...restArg)
->     }
-> }
-> ```
 
 
 
@@ -1237,33 +1482,6 @@
 > （1）await只能在声明时前面加上async的函数中使用。await等待Promise，await表达式的值是Promise的解决值或拒绝值。await会阻塞函数内后续操作。
 >
 > （2）声明时前面加上async的函数返回值是一个Promise，如果函数内部返回Promise那么async返回的Promise就是该Promise，否则返回一个已经解决的Promise，解决值是函数返回值。
-
-
-
-### 8.面向对象技术
-
-**70.如何创建对象？**
-
-> 主要三大类方法，其它方法大同小异。
->
-> （1）工厂函数：直接调用函数创建一个对象，然后给对象添加属性和方法。缺点是方法无法复用
->
-> （2）构造函数：new调用函数创建对象，对象方法设置在构造函数的原型上，做到方法复用
->
-> （3）对象字面量创建：直接用大括号定义对象
-
-
-
-**71.如何实现对象继承？**
-
-> （1）函数实现对象继承，
->
-> * 子构造函数中调用父构造函数创建父对象，this指向该对象。
-> * 子构造函数的原型用Object.create传入父构造函数的原型来创建。
->
-> （2）JavaScript自带函数实现，Object.create传入一个对象，作为新对象的原型，只是简单继承了原型上的属性。
->
-> （3）ES6的类继承
 
 
 
