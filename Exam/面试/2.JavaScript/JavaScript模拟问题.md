@@ -101,7 +101,7 @@
 >
 > 箭头函数this继承自所在函数或全局作用域。
 
-#### new实现内容
+#### new实现
 
 > （1）创建一个空对象
 >
@@ -110,6 +110,10 @@
 > （3）绑定该对象的prototype指向构造函数的原型
 >
 > （4）判断构造函数返回值类型，如果是引用类型则返回引用类型，如果是基本类型则返回该对象
+
+#### 函数重载
+
+> 
 
 #### ES5模拟继承
 
@@ -252,9 +256,27 @@
 > > * **识别函数体：** 识别普通函数，箭头函数，ES6增强写法的函数。传入new Function。
 > > * **替换递归调用：** 递归调用替换为arguments.callee调用。
 
-#### Object.assign
+#### 对象浅拷贝
 
-> 
+> **Object.assign**
+>
+> > **概念：** 把若干个对象拷贝到一个目标对象上。
+> >
+> > **行为：** 复制自有可枚举属性和符号属性。
+>
+> **展开语法**
+>
+> > **概念：** 把若干个对象拷贝到一个新对象上。
+> >
+> > **行为：** 复制自有可枚举属性和符号属性。
+>
+> **访问器属性**
+>
+> > **特性不可拷贝：** 属性拷贝时访问器特性不会被拷贝，只能通过Object.defineProperty设置。
+> >
+> > **特性可丢失：** 属性重名时Object.assign不会导致访问器特性丢失，展开语法会导致访问器特性丢失。
+> >
+> > **值可覆盖：** 属性重名时属性值会被覆盖。
 
 #### 自有属性和可枚举属性
 
@@ -268,9 +290,159 @@
 > > * **原型链：** 自己的非原型链继承的属性。
 > > * **自有属性操作：** hasOwnProperty。
 
+#### Object键的顺序
+
+> **优先级顺序如下：**
+>
+> > **自然数：** 大小顺序。
+> >
+> > **普通字符串：** 插入顺序。
+> >
+> > **符号：** 插入顺序。
+
+#### Object和Map区别
+
+> **键原型：** Map中默认不包含键，Object中默认包含原型链上的键。
+>
+> **键类型：** Map中键可以是任意类型，Object中键只能是String或Symbol类型。
+>
+> **键顺序：** Map中的键是依据插入顺序的，Object中的键有特殊顺序。
+>
+> **键数量：** Map中键的个数可以用size获取，Object中的键的个数不能直接获取。
+>
+> **键优化：** Map对频繁增删键值对情景有优化，Object对频繁增删键值对情景无优化。
+>
+> **键迭代：** Map是可迭代对象，Object必须有迭代器协议才能迭代。
+
+#### Map和WeakMap区别
+
+> **键类型：** Map中的键可以是任意类型，WeakMap中的键只能是引用类型。
+>
+> **键迭代：** Map中的键可迭代，WeakMap中的键可能被垃圾回收不可迭代。
+>
+> **键回收：** Map中的键不可被回收，WeakMap中的键可以被垃圾回收。
+
+#### 常见编码模式
+
+> **Unicode编码**
+>
+> > 给世界上所有字符提供编码。
+> >
+> > js可以直接通过字符串打印 ```\uXXXX``` （一次只能输入一个2字节unicode编码）或 ```\u{XXXX}``` （任意unicode编码）。
+> >
+> > * **UTF-8：** 1~4字节变长存储。
+> >
+> > * **UTF-16：** 2或4字节变长存储。
+> >
+> > * **UTF-32：** 4字节定长存储。
+>
+> **ASCII编码**
+>
+> > 支持127个基本字符编码。
+
+#### 码点和码元
+
+> JavaScript默认使用UTF-16编码
+>
+> **码点：**
+>
+> > 一个码点中包含2个字节编码
+> >
+> > 获取码点：  ```str.charCodeAt(index)```
+> >
+> > 生成码元： ```String.fromCharCodeAt(Number)```
+>
+> **码元：**
+>
+> > 一个码元中包含完整的unicode编码
+> >
+> > 获取码元： ```str.codePointAt(index)```
+> >
+> > 生成码元： ```String.fromCodePointAt(Number)```
+>
+> **获取字符串码元长度**
+>
+> ```javascript
+> const getLength = (str) => {
+>   let length = 0;
+>   const maxSize = 2 ** 16;
+>   for (let index = 0; index < str.length; ) {
+>     index += 1 + (str.codePointAt(index) >= maxSize);
+>     length++;
+>   }
+>   return length;
+> };
+> ```
+
+#### URI和URL区别
+
+> URI包含URL。
+>
+> **URL：** 
+>
+> > 统一资源定位符。标识资源访问位置。不保证资源是否有变化。
+>
+> **URN：**
+>
+> > 统一资源名称。标识资源名称。不关注资源的位置。
+>
+> **URI：**
+>
+> > 统一资源标识符。标识资源名称或访问位置或都标识，是URL和URN统称。
+
+#### URI编码
+
+> * **ASCII字符集：** URI中只允出现ASCII字符集中的部分字符。例如空格不允许出现。
+> * **解析冲突：** URI依靠“/，&。:”等特殊字符解析，URI内容部分不能与之冲突。
+
+#### URI编码区别
+
+> **escape：**
+>
+> > **场景：** 被废弃。
+> >
+> > **行为：** 
+> >
+> > * 非ASCII字符集字符进行编码，```%uXXXX``` UTF16编码。
+> > * 部分ASCII字符集字符进行编码。
+>
+> **encodeURI：**
+>
+> > **场景：** 编码整个URL。
+> >
+> > **行为：** 
+> >
+> > * 非ASCII字符集字符进行编码。```%XXXX``` UTF8编码。
+>
+> **encodeURIComponent：**
+>
+> > **场景：** 编码URL的查询参数。
+> >
+> > **行为：** 
+> >
+> > * 非ASCII字符集字符进行编码。```%XXXX``` UTF8编码。
+> > * 部分ASCII字符集字符进行编码（和查询参数相关：“？，/，=”）。
+
+#### atob和btoa使用限制
+
+> **使用限制：** 只能在ASCII与Latin-1编码和Base64编码之间转换。
+>
+> **突破限制：** 编码非ASCII和Latin-1字符集时可以借助TextEncoder和TextDecoder将符号编码到UTF-8或UTF-8解码到符号，在调用atob和btoa，因为UFT-8编码的符号属于ASCII。
+>
+> ```javascript
+> // 任意符号到base64编码
+> console.log(btoa(new TextEncoder().encode("你好李焕英")));
+> 
+> const base64Result =
+>   "MjI4LDE4OSwxNjAsMjI5LDE2NSwxODksMjMwLDE1NywxNDIsMjMxLDEzMiwxNDksMjMyLDEzOSwxNzc=";
+> 
+> // base64到任意符号
+> console.log(new TextDecoder().decode(Uint8Array.from(atob(base64Result).split(","))));
+> ```
 
 
-### 3.闭包/作用域/执行上下文
+
+### 3.执行上下文
 
 #### 闭包
 
@@ -300,9 +472,9 @@
 >
 > **解决：**
 >
-> > （1）不使用时主动设置对象为null。
+> > **引用方式释放：** 不使用时主动设置对象为null。
 > >
-> > （2）如果使用对象的某些属性，就直接用栈内存拷贝，不引用整个堆内存。
+> > **引用方式调整：** 如果使用对象的某些属性，就直接用栈内存拷贝，不引用整个堆内存。
 
 #### 节流防抖
 
@@ -326,19 +498,153 @@
 > >
 > >滚动事件；窗口大小变化。
 
+#### eval
+
+> **低效率**
+>
+> > eval执行的语句必须调用JavaScript解释器，无法被宿主环境优化，例如V8引擎通常使用JIT技术进行局部编译。
+>
+> **可移植**
+>
+> > eval函数参数是字符串，可以直接移植到new Function中。
+>
+> **作用域**
+>
+> > eval作用域是：直接调用是当前作用域，间接调用是全局作用域。
+> >
+> > new Function作用域是：全局作用域。
+> >
+> > **<font color=blue>联想：webpack为什么source-map存在eval模式而不存在new Function模式，可能由于作用域问题。</font>**
+> >
+> > ```javascript
+> > // 浏览器环境测试
+> > const a = 123
+> > (function() {
+> >     const a = 456
+> >     const evil = eval;
+> >     // 间接调用：全局作用域：123
+> >     evil("console.log(a)") 
+> >     // 直接调用：当前作用域：456
+> >     eval("console.log(a)")
+> >     // 直接调用：全局作用域：123
+> >     new Function("console.log(a)")()
+> > })()
+> > ```
+
 #### 作用域
 
-> 全局作用域
+> **作用域概念：**
 >
-> 函数作用域
+> > 可以理解为一套规则，规定了变量的使用范围和引擎查找变量的规则。
 >
-> 局部作用域
+> **作用域类型：**
 >
-> eval作用域
+> > **全局作用域**
+> >
+> > > 最高环境。
+> >
+> > **函数作用域**
+> >
+> > > 函数内部。
+> >
+> > **局部作用域**
+> >
+> > > 大括号内部。
+> > >
+> > > * **创建方式：** 可以直接创建，一般使用条件语句，循环语句创建。
+> > > * **ES5创建方式：** 立即执行函数。
+> >
+> > **eval作用域**
+> >
+> > > eval函数内部。
 
 #### 作用域链
 
-> 
+> 多个连接在一起的作用域。JavaScript引擎在查找变量时会从当前作用域出发，查找失败会继续向父级作用域查找。
+
+#### 执行上下文
+
+> **执行上下文概念：**
+>
+> > JavaScript运行时的环境。
+>
+> **执行上下文类型：**
+>
+> > * 全局执行上下文
+> > * 函数执行上下文
+> > * eval执行上下文
+>
+> **执行上下文创建：**
+>
+> > **绑定this**
+> >
+> > > this的指向只有在执行上下文创建时才能确定。指向优先程度如下：
+> > >
+> > > * new
+> > > * 函数绑定
+> > > * 对象调用
+> > > * 箭头函数场景确定。
+> >
+> > **创建词法环境**
+> >
+> > > * **绑定函数属性：** 确认实参arguments。
+> > > * **绑定外部引用：** 确认函数能访问到的变量的范围，记录它们的引用。
+> >
+> > **创建变量环境**
+> >
+> > > * **绑定函数变量：**
+> > >   * var声明和形参声明，值为undefined，加入变量环境。
+> > >   * let声明和const声明，值为undefined，加入变量环境。
+> > >   * 实参带入，给形参赋值。
+> > >   * 声明式函数，加入变量环境。
+> > > * **绑定作用域链：** 根据词法环境的外部引用确认函数能访问到的变量的值，即函数的[[scope]]属性。
+
+#### 栈溢出
+
+> **说明：** 异步调用不会导致溢栈。因为主任务结束后主任务执行上下文回收。异步回调时才将上下文重新推入主线程。
+>
+> **举例：** 递归实现请求并发控制，setTimeout调用自己的递归函数。
+
+#### 定时器不精确原因
+
+> **硬件**
+>
+> > 没有绝对精确的计时硬件（除原子钟，误差可以忽略不计）。
+>
+> **系统**
+>
+> > C++给JavaScript提供的系统调用中的定时器调用不是精确的。因为操作系统计时会受到进程切换，CPU超频等事件影响，影响操作系统精度。
+>
+> **标准**
+>
+> > W3C规定计时器嵌套层级大于等于5层时，计时器时间延迟最小为4ms。
+>
+> **事件循环**
+>
+> > 受事件循环影响，计时器回调必须等到执行栈清空后才能执行。
+>
+> **幽灵漏洞**
+>
+> >
+
+#### 高精度定时器实现方式
+
+#### 切换页签对定时器影响
+
+> **影响精度：**
+>
+> chrome切换页签时会降低循环定时器执行频率，例如小于1000ms的回调全部在1000ms执行。
+>
+> **解决副作用：**
+>
+> * **记录状态：** 切换页签前终止计时器，记录状态。回到原有页签时重启计时器，恢复状态。
+> * **工作线程：** 在工作线程中设置定时器，不受浏览器对主线程优化的影响。
+
+#### 预编译和预解析
+
+#### 跨窗口通信
+
+#### use strict
 
 
 
@@ -358,7 +664,7 @@
 
 > **作用域**
 >
-> let/const是块级作用域，var是函数作用域。
+> let/const是块级（局部）作用域，var是函数作用域。
 >
 > **重复声明**
 >
@@ -397,13 +703,160 @@
 > >
 > > * **解构：** 用于解构数组或对象，收集参数到数组或对象
 
-#### 迭代器和生成器
+#### 常见异步方式对比
 
+> **Callback**
+>
+> > 产生回调地狱，回调函数嵌套层级过深
+>
+> **Promise**
+>
+> > 长链式调用过长。错误需要逐层抛出。
+>
+> **Generator**
+>
+> > 编写生成器代码较多。
+>
+> **Async**
+>
+> > 生成器语法糖。async代替*，await代替yield，方便书写，方便捕获错误。
+
+#### 迭代器
+
+> **可迭代对象：**
+>
+> > 遵守迭代协议的对象。
+>
+> **迭代协议：**
+>
+> > **可迭代协议**
+> >
+> > > 一个对象可迭代必须有Symbol.iterator方法，返回值是符合迭代器协议的迭代器对象。
+> >
+> > **迭代器协议**
+> >
+> > > * **IteratorResult结构：** 下列方法返回的标准对象，有value和done字段。
+> > > * **next方法：** 迭代器遍历。
+> > > * **return方法：** 迭代器终止。
+> > > * **throw方法：** 迭代器抛出异常。
+>
+> **默认标准：**
+>
+> > 一般让迭代器对象也可以迭代。因此Symbol.iterator一般返回this。
+
+#### 生成器
+
+> **概述：**
+>
+> > * **语法糖：** 迭代器的语法糖
+> >
+> > * **默认标准：** 返回一个可迭代对象，并且遵守默认标准，它的迭代器也是可迭代对象。
+>
+> **启动和暂停：**
+>
+> > **yield：** 暂停生成器并抛出内容。
+> >
+> > **next：** 启动生成器，并传值给上次的yield语句。
+>
+> ```javascript
+> function* getArray() {
+>   const length = 10;
+>   for (let index = 0; index < length; index++) {
+>     const param = yield index;
+>     console.log(param)
+>   }
+> }
 > 
+> const obj = getArray();
+> 
+> console.log(obj.next(123)) // { value: 0 }
+> console.log(obj.next(456)) // 456 { value: 1 }
+> console.log(obj.next(789)) // 789 { value: 2 }
+> ```
+
+#### 元编程特点
+
+> **代理原理：** Object.defineProperty通过访问器属性拦截和代理对属性的修改。Proxy通过第二个参数注册事件函数，针对对象或属性的事件触发后使用Reflect代理。
+>
+> **代理自身：** Object.defineProperty可以代理到自身或其它对象。Proxy和Reflect只能拦截和代理到Proxy实例化时传入对象。
+>
+> **代理局限性：** Object.defineProperty只能代理访问器属性，是属性层面。Proxy和Reflect可以拦截和代理属性和方法，有属性层面也有对象层面。例如数组的push和pop方法。
 
 
 
-### 5.代码实现
+### 5.垃圾回收
+
+#### JIT
+
+#### 常见内存泄漏场景
+
+#### 常见垃圾回收机制
+
+#### JavaScript垃圾回收机制
+
+
+
+### 6.设计模式
+
+#### 编程范式
+
+#### 切面编程
+
+#### 代理模式
+
+#### 装饰器模式
+
+
+
+### 7.PWA
+
+#### 缓存应用
+
+#### 服务线程生命周期
+
+### 8.WebAssembly
+
+#### 内存结构
+
+#### Wasm多线程
+
+#### WebContainer
+
+#### SharedArrayBuffer开启条件
+
+
+
+### 9.代码实现
+
+#### new
+
+> ```javascript
+> function _new(constructor, ...args) {
+> // 1.创建空对象
+> const target = {};
+> // 2.绑定this
+> const result = constructor.call(target, ...args);
+> const object = typeof result === "object" && result ? result : target;
+> // 3.绑定prototype
+> Object.setPrototypeOf(object, constructor.prototype);
+> // 4.返回this或新对象
+> return object;
+> }
+> ```
+
+#### curry
+
+> ```javascript
+> const curry = (func) => {
+> return (...args) => {
+>  if (args.length >= func.length) {
+>    return func(...args);
+>  } else {
+>    return curry(func.bind(null, ...args));
+>  }
+> };
+> };
+> ```
 
 #### instanceOf
 
@@ -427,36 +880,6 @@
 >     }
 >   }
 >   return false;
-> }
-> ```
-
-#### curry
-
-> ```javascript
-> const curry = (func) => {
->   return (...args) => {
->     if (args.length >= func.length) {
->       return func(...args);
->     } else {
->       return curry(func.bind(null, ...args));
->     }
->   };
-> };
-> ```
-
-#### new
-
-> ```javascript
-> function _new(constructor, ...args) {
->   // 1.创建空对象
->   const target = {};
->   // 2.绑定this
->   const result = constructor.call(target, ...args);
->   const object = typeof result === "object" && result ? result : target;
->   // 3.绑定prototype
->   Object.setPrototypeOf(object, constructor.prototype);
->   // 4.返回this或新对象
->   return object;
 > }
 > ```
 
@@ -625,6 +1048,20 @@
 >       return clone(target);
 >     };
 > ```
+
+#### 函数重载
+
+#### 函数休眠
+
+> ```javascript
+> // 同步风格
+> const sleep = (time) => {
+>   const start = Date.now();
+>   while (Date.now() - start < time);
+> };
+> ```
+
+#### 链式调用
 
 #### 数组打平
 
@@ -805,7 +1242,34 @@
 > };
 > ```
 
+#### 元编程代理
 
+> ```javascript
+> // 使用Proxy实现对arr[-1]的访问
+> const getProxyArray = (arr) => {
+>   return new Proxy(arr, {
+>     get(target, key) {
+>       const index = Number(key);
+>       if (index < 0) {
+>         const targetIndex = target.length - (-index % target.length);
+>         return Reflect.get(target, targetIndex);
+>       } else {
+>         return Reflect.get(target, key);
+>       }
+>     },
+>   });
+> };
+> ```
+
+#### Promise
+
+#### Promise静态方法
+
+#### async和await
+
+#### 事件总线
+
+#### 订阅发布
 
 
 
@@ -1019,14 +1483,6 @@
 
 
 
-**43.fetch和XMLHttpRequest发起网络请求有什么区别？**
-
-> （1）fetch最初不支持终止网络请求，现在可以用AbortController类终止Promise请求。XHR可以终止网络请求。
->
-> （2）fetch默认不携带cookie，如果使用需要手动添加。XHR默认携带cookie。
->
-> （3）fetch无法监听网络请求上传进度，XHR可以监听网络请求上传和下载进度。
-
 
 
 **44.什么是尾调用优化？**
@@ -1091,71 +1547,6 @@
 > for(let { key, value } of obj)
 >     console.log(key, value)
 > ```
-
-
-
-### 4.原型链
-
-**52.描述一下原型链的指针关系？**
-
-> （1）对象的\_\_proto\_\_属性指向自己的原型对象。
->
-> （2）原型对象的constructor指向构造函数，\_\_proto\_\_属性指向自己的原型对象。
->
-> （3）构造函数的prototype属性指向该构造函数对应的原型对象，\_\_proto\_\_指向自己的原型对象。
->
-> 注：一个对象深究，用两条原型链来描述，如下
->
-> ![](./assets/原型链.png)
-
-
-
-
-
-**54.如何获得对象非原型链上的属性？**
-
-> 用for in遍历对象所有属性，用hasOwnProperty来判断是不是非原型链属性
-
-
-
-**55.修改原型时该注意什么？**
-
-> 修改原型尽量修改原型内部属性。如果重写原型，那么之前的对象的原型指针不能指向最新的原型对象。
-
-
-
-### 5.执行上下文/作用域链/闭包
-
-
-
-**57.什么是执行上下文？**
-
-> JavaScript代码执行时的环境。执行上下文分为全局执行上下文和函数执行上下文。每个函数执行前都会创建自己的执行上下文环境并压入执行上下文栈，执行完毕时出栈。
-
-
-
-**58.执行上下文创建过程是什么样的？**
-
-> （1）绑定this。
->
-> * 普通函数的this指向全局对象
-> * 箭头函数this的指向和所在函数作用域中的this指向相同
-> * 普通函数被作为对象方法调用时this指向对象
-> * 构造函数中this指向新创建的对象
-> * apply，call，bind改变this的指向。
->
-> （2）创建词法环境。词法环境记录了函数的外部作用域，记录了函数相关参数如name，prototype，arguments
->
-> （3）创建变量环境。
->
-> * 先将形参加入变量环境，属性值为undefined。
->
-> * 先找var声明的变量加入变量环境，属性值为undefined。
-> * 找let和const变量声明的变量加入变量环境，属性值为未初始化不可访问。
-> * 将实参值带入。
-> * 将声明式函数加入变量环境，属性值为函数本身。
-
-
 
 
 
