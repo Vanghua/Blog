@@ -1,3 +1,39 @@
+### 1.标签资源解析
+
+#### defer和async区别
+
+> defer：不阻塞dom解析，dom解析完成后顺序执行
+>
+> async：不阻塞dom解析，下载完成后立即执行
+
+#### preload和prefetch区别
+
+> preload：下载资源但不执行，浏览器立即下载
+>
+> prefetch：下载资源但不执行，浏览器空闲时下载
+
+#### crossOrigin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ### 1.页面布局
 
 **1.px，em，rem单位的区别是什么？**
