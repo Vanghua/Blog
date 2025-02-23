@@ -278,6 +278,12 @@
 
 ### 2.对象
 
+#### 堆内存和栈内存
+
+> **栈内存：** 执行上下文的变量或者参数
+>
+> **堆内存：** 对象
+
 #### this指向
 
 > **this指向确定：**
@@ -481,7 +487,7 @@
 
 #### 对象冻结
 
-> ```Object.freeze()``` 保障对象属性值不可修改，特性不可修改
+> ```Object.freeze()``` 保障对象属性值不可修改，不可扩展，特性不可修改
 >
 > **性能提升：**
 >
@@ -533,7 +539,7 @@
 >
 > **浅层防扩展：**
 >
-> > ```Object.preventExtensions()``` 只密封对象浅层属性和自有属性
+> > ```Object.preventExtensions()``` 只防止对象浅层属性和自有属性
 >
 > **判断扩展性：**
 >
@@ -717,7 +723,7 @@
 > >
 > > 获取码点：  ```str.charCodeAt(index)```
 > >
-> > 生成码元： ```String.fromCharCodeAt(Number)```
+> > 生成码点： ```String.fromCharCode(Number)```
 >
 > **码元：**
 >
@@ -725,7 +731,7 @@
 > >
 > > 获取码元： ```str.codePointAt(index)```
 > >
-> > 生成码元： ```String.fromCodePointAt(Number)```
+> > 生成码元： ```String.fromCodePoint(Number)```
 >
 > **获取字符串码元长度**
 >
@@ -777,11 +783,15 @@
 > >
 > > **作用域隔离：**
 > >
-> > 函数嵌套一个函数，嵌套函数作为模块，内部声明变量，被嵌套函数执行逻辑。
+> > 函数嵌套一个函数，嵌套函数作为模块，内部声明变量，被嵌套函数执行逻辑。例如一段代码外面包裹IIFE。
 >
 > **内存泄漏：**
 >
-> 
+> > 见后续总结
+> >
+> > **存在泄漏：** 游离内存和返回不必要的内容
+> >
+> > **不存在泄漏：**
 
 #### 提权漏洞
 
@@ -833,21 +843,21 @@
 >
 > >**概念：**
 > >
-> >X秒内最多执行一次。
+> >一段时间只执行一次。王者荣耀放技能。
 > >
 > >**应用：**
 > >
-> >搜索框搜索；表单提交；按钮点击。
+> >滚动事件；窗口大小变化。
 >
 > **防抖：**
 >
 > >**概念：**
 > >
-> >上一次调用后延迟X秒执行。
+> >延迟执行。王者荣耀回城。
 > >
 > >**应用：**
 > >
-> >滚动事件；窗口大小变化。
+> >搜索框搜索；表单提交；按钮点击。
 
 #### eval
 
@@ -883,8 +893,20 @@
 > > ```
 >
 
+#### 作用域
+
+> **主要：**
+>
+> 全局作用域，函数作用域，块级作用域。
+>
+> **选择回答：**
+>
+> eval作用域，模块作用域等等。
+
 #### 词法环境
 
+> <font color=red>**注：执行上下文包含词法环境；词法环境对应作用域。**</font>
+>
 > **概念** 
 >
 > > **创建：** 对应五种环境记录场景运行时创建。简述是运行到函数或块中时创建。
@@ -892,11 +914,11 @@
 > > **含义：** 记录标识符到变量值的映射。
 > >
 > > **组成：** 环境记录和外部引用。
-> 
+>
 > **环境记录**
 >
 > > **对象环境记录：** with中访问的对象属性。
->>
+> >
 > > **声明环境记录：** 函数声明，变量声明。
 > >
 > > **函数环境记录：** 基于声明环境记录，添加了函数专用属性。例如：this的值，函数是否通过new调用，函数是否是箭头函数。
@@ -907,7 +929,7 @@
 > >
 > > * **全局对象环境记录：** var声明变量，函数声明，默认全局函数
 > > * **全局声明环境记录：** let/const/class声明的变量
-> 
+>
 > **外部引用**
 >
 > > 对父级词法环境的引用，可以访问父级词法环境的变量。
@@ -915,7 +937,7 @@
 > **声明环境记录的创建：**
 >
 > > **注：声明环境记录在记录var声明变量和声明式函数时，可以穿透所有嵌套的非函数声明环境记录（穿透块级作用域，不穿透eval作用域）**
->>
+> >
 > > 记录var声明和形参声明
 > >
 > > 记录let和const声明
@@ -923,6 +945,7 @@
 > > 带入实参值到形参记录
 > >
 > > 记录声明式函数和值
+>
 
 #### 执行上下文
 
@@ -1150,6 +1173,8 @@
 > > **描述函数形参**
 > >
 > > * **解构：** 用于解构数组或对象，收集参数到数组或对象
+> >
+> > **解构赋值**
 
 #### 常见异步方式对比
 
@@ -1159,7 +1184,7 @@
 >
 > **Promise**
 >
-> > 长链式调用过长。错误需要逐层抛出。
+> > 长链式调用过长。特点是错误是逐层抛出，直到catch函数。
 >
 > **Generator**
 >
@@ -1284,13 +1309,18 @@
 > **默认标准：**
 >
 > > 一般让迭代器对象也可以迭代。因此Symbol.iterator一般返回this。
+>
+> **异步迭代器：**
+>
+> > * next返回值整体被Promise包裹
+> > * Symbol.iterator变成Symbol.asyncIterator
 
 #### 生成器
 
 > **概述：**
 >
-> > * **语法糖：** 迭代器的语法糖
-> >
+> > * **语法糖：** 迭代器的语法糖。
+> >* **同步性：** 返回的是可迭代对象，不是异步可迭代对象。
 > > * **默认标准：** 返回一个可迭代对象，并且遵守默认标准，它的迭代器也是可迭代对象。
 >
 > **启动和暂停：**
@@ -1341,7 +1371,21 @@
 >
 > 该方法不会强制终止迭代器，除非此时通过某些操作让next方法下次返回done为true。
 
-#### Proxy
+#### Reflect
+
+> **概述：** 可以完成对象的基本操作。
+>
+> **基本操作：** ES262规范规定的对象上仅存在的操作，例如读取属性，设置属性等等。Reflect出现之前的对象方法都是在间接调用这些操作。
+>
+> **直接调用：** 直接调用不会存在预处理的逻辑。例如Object.keys默认逻辑是访问自有可枚举属性，通过Reflect获取对象键值不会有这个默认逻辑。
+
+#### Proxy相比defineProperty好处
+
+> **属性遍历：** defineProperty需要深度遍历给对象每个属性设置监听；proxy监听整个对象不深度遍历。
+>
+> **属性增删：** defineProperty无法监听对象属性的新增和删除；proxy由于监听对象所以可以监听属性新增删除。
+>
+> <font color=red>**注：不深度遍历的意思：proxy只需要在get读到某个属性是对象时再对这个对象做proxy监听即可**</font>
 
 #### 元编程特点
 
@@ -1355,7 +1399,7 @@
 
 > **概念：** 尾调用优化指提前让执行上下文出栈来降低空间复杂度。
 >
-> **开启条件：** 目前Chrome支持；严格模式开启。当前函数和父级函数返回值相同。
+> **开启条件：** 目前Safari支持；严格模式开启。当前函数和父级函数返回值相同。
 
 #### Symbol属性
 
@@ -1378,17 +1422,19 @@
 > >
 > > ```javascript
 > > const obj = {
-> >   [Symbol.toPrimitive](hint) {
-> >     console.log(hint)
-> >     switch (hint) {
-> >       case "number":
-> >         return 123;
-> >       case "string":
-> >         return 'obj';
-> >       default:
-> >         return 233;
-> >     }
-> >   },
+> > [Symbol.toPrimitive](hint) {
+> >  console.log(hint)
+> >  switch (hint) {
+> >    case "number":
+> >      return 123;
+> >    case "string":
+> >      return 'obj';
+> >    case "default":
+> >      return 233;
+> >    default:
+> >    	 throw new Error("invalid hint")      
+> >  }
+> > },
 > > };
 > > ```
 >
@@ -1700,6 +1746,8 @@
 > **回调执行时机：**
 >
 > > 微任务
+> >
+> > <font color=red>**注：W3C规范准确声明是浏览器支持微任务队列时才放入，但是一般浏览器都支持；Vue的nextTick有使用MutationObserver。**</font>
 >
 > **应用场景：**
 >
@@ -1742,6 +1790,10 @@
 > | 使用流              | 支持        | 不支持   |
 > | 风格                | Promise风格 | 事件风格 |
 > | 活跃度              | 不断更新    | 不更新   |
+>
+> **控制cookie携带：** Fetch的credentials比XHR的withCredentials控制更细致。配置可以精确到同源时携带。
+>
+> **控制重定向：** Fetch的rediect可以控制是否重定向或收到重定向字段后手动控制重定向。XHR只能遵从重定向。
 
 #### URI和URL区别
 
@@ -1772,6 +1824,8 @@
 >
 > > **场景：** 被废弃。
 > >
+> > **设计：** 符合JavaScript编码规则。
+> >
 > > **行为：** 
 > >
 > > * ***“特殊字符”*** 不编码（@*_+-./）
@@ -1781,6 +1835,8 @@
 >
 > > **场景：** 不推荐。
 > >
+> > **设计：** 对整个URL转义编码。
+> >
 > > **行为：** 
 > >
 > > * ***“#号”*** 和 ***“数字字母”*** 和 ***”保留字符“*** 和 ***”不转义字符“*** 不编码（#和数字字母和;,/?:@&=+$和-_.!~*'()）。
@@ -1789,6 +1845,8 @@
 > **encodeURIComponent：**
 >
 > > **场景：** 推荐。
+> >
+> > **设计：** 对URL查询参数编码。
 > >
 > > **行为：** 
 > >
@@ -1872,7 +1930,7 @@
 
 > **概念：** 一个类只能有一个实例。
 >
-> **举例： ** 大文件上传存在连接池或任务池调度，应该对池实例采用单例模式，当自定义表单在一个页面上配置了多个大文件上传控件时会导致并发请求超出设置。
+> **举例： ** 大文件上传存在连接池或任务池调度，应该对池实例采用单例模式，当自定义表单在一个页面上配置了多个大文件上传控件时会导致并发请求超出设置。antd的message，seedsui的toast，loading控件等等。
 
 #### 代理模式
 
@@ -1975,23 +2033,24 @@
 >
 > ```javascript
 > Function.prototype._call = function (context, ...args) {
->   let contextObj;
->   // 1.格式化上下文
->   if (context === null || context === void 0) {
->     contextObj = globalThis;
->   } else if (typeof context !== "object" && typeof context !== "function") {
->     contextObj = Objec(context);
->   } else {
->     contextObj = context;
->   }
->   // 2.上下文定义方法
->   const propName = Symbol("");
->   Object.defineProperty(contextObj, propName, {
->     value: this,
->   });
->   // 3.上下文调用函数
->   contextObj[propName](...args);
->   delete contextObj[propName];
+> let contextObj;
+> // 1.格式化上下文
+> if (context === null || context === void 0) {
+>  contextObj = globalThis;
+> } else if (typeof context !== "object" && typeof context !== "function") {
+>  contextObj = Objec(context);
+> } else {
+>  contextObj = context;
+> }
+> // 2.上下文定义方法
+> const propName = Symbol("");
+> Object.defineProperty(contextObj, propName, {
+>  value: this,
+> });
+> // 3.上下文调用函数
+> const result = contextObj[propName](...args);
+> delete contextObj[propName];
+> return result
 > };
 > ```
 >
@@ -1999,10 +2058,35 @@
 >
 > ```javascript
 > Function.prototype._bind = function (context, ...args) {
->   return (...rest) => {
->     return this.call(context, ...args, ...rest);
->   };
+> return (...rest) => {
+>  return this.call(context, ...args, ...rest);
 > };
+> };
+> ```
+
+#### 模拟微任务队列
+
+> ```javascript
+> /**
+>  * @description （腾讯）模拟微队列。考察点：Vue中nextTick
+>  * @description 异步执行一个函数。如果可以，尽量将函数放入微队列
+>  */
+> function asyncRun(func) {
+>   // 注：兼容性判断都用typeof xxx !== 'undefined'判断
+>   // 注：直接判断xxx是否存在会报错xxx is not defined
+>   if (typeof queueMicrotask === "function") {
+>     queueMicrotask(func);
+>   } else if (typeof Promise !== "undefined") {
+>     Promise.resolve().then(func);
+>   } else if (typeof MutationObserver !== "undefined") {
+>     const ob = new MutationObserver(func);
+>     const textNode = document.createTextNode("");
+>     ob.observe(textNode, { characterData: true });
+>     textNode.data += " ";
+>   } else {
+>     setTimeout(func);
+>   }
+> }
 > ```
 
 #### ES5模拟类
@@ -2011,6 +2095,9 @@
 >
 > ```javascript
 > function Student(school, grade) {
+>   if(!new.target) {
+>     throw new Error('use new')
+>   }
 >   this.school = school;
 >   this.grade = grade;
 > }
@@ -2021,6 +2108,8 @@
 > Student.prototype.getGrade = function () {
 >   return this.grade;
 > };
+> 
+> console.log(new Student())
 > ```
 
 #### ES5模拟继承
@@ -2207,20 +2296,41 @@
 >  * memoFunc.cache.set(obj, ['a', 'b'])
 >  * console.log(memoFunc(obj)) // ['a', 'b']
 >  */
-> function memorize(func) {
->   const map = new WeakMap();
->   function wrapFunc(param) {
->     if (map.has(param)) {
->       return map.get(param);
->     } else {
->       const result = func.call(this, param);
->       map.set(param, result);
->       return result;
->     }
+> class MemorizeMap {
+>   constructor() {
+>     this.map = new Map();
+>     this.weakMap = new WeakMap();
 >   }
->   wrapFunc.cache = map;
+>   getMap(value) {
+>     return typeof value === "object" && value ? this.weakMap : this.map;
+>   }
+>   get(key) {
+>     return this.getMap(key).get(key);
+>   }
+>   set(key, value) {
+>     return this.getMap(key).set(key, value);
+>   }
+>   has(key) {
+>     return this.getMap(key).has(key);
+>   }
+> }
+> 
+> function memorize(func, resolver) {
+>   const memorizeMap = new MemorizeMap();
+>   const wrapFunc = function (...args) {
+>     const key = typeof resolver === "function" ? resolver(args) : args?.[0];
+>     if (memorizeMap.has(key)) {
+>       return memorizeMap.get(key);
+>     } else {
+>       const value = func.call(this, ...args);
+>       memorize.set(key, value);
+>       return value;
+>     }
+>   };
+>   wrapFunc.cache = memorizeMap;
 >   return wrapFunc;
 > }
+> 
 > ```
 
 #### 函数休眠
@@ -2296,6 +2406,64 @@
 >   });
 >   return result;
 > };
+> ```
+
+#### 数组转树
+
+> ```javascript
+> /**
+>  * @description（知乎）O(1)时间复杂度把父节点表示法的数组转成树
+>  * @description 当前数组数据结构 {id: any, value: any, parent: any }[]
+>  * @description 目标树的数据结构 {id: any, value: any, children: object[]}
+>  * @example 转换前：
+>  * [
+>  *  { id: 1, value: 1, parent: null },
+>  *  { id: 2, value: 2, parent: 1 },
+>  *  { id: 3, value: 3, parent: 2 },
+>  *  { id: 4, value: 4, parent: 1 },
+>  * ];
+>  * @example 转换后：
+>  * const root = {
+>  *  id: 1,
+>  *  value: 1,
+>  *  children: [
+>  *    {
+>  *      id: 2,
+>  *      value: 2,
+>  *      children: [
+>  *        {
+>  *          id: 3,
+>  *          value: 3,
+>  *          children: [],
+>  *        },
+>  *      ],
+>  *    },
+>  *    {
+>  *      id: 4,
+>  *      value: 4,
+>  *      children: [],
+>  *    },
+>  *  ],
+>  * };
+>  */
+> 
+> function arrayToTree(array) {
+>   let root = null;
+>   const map = new Map();
+>   array.forEach((node) => {
+>     if (!node.parent) {
+>       root = node;
+>     }
+>     node.children = [];
+>     map.set(node.id, node);
+>   });
+>   array.forEach((node) => {
+>     if (node !== root) {
+>       map.get(node.parent).children.push(node);
+>     }
+>   });
+>   return root;
+> }
 > ```
 
 #### 数组去重
@@ -2543,7 +2711,7 @@
 >           }
 >         );
 >       } else {
->         result[index] = value;
+>         result[index] = promise;
 >         ++count === arr.length && res(result);
 >       }
 >     });
@@ -2697,7 +2865,7 @@
 >   off(eventName, callback) {
 >     const targetEvent = this.getTargetEvent(eventName);
 >     const targetIndex = targetEvent.callbacks.findIndex((func) => {
->       func === callback;
+>       return func === callback;
 >     });
 >     targetIndex !== -1 && this.queue.splice(targetIndex, 1);
 >   }
